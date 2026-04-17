@@ -72,18 +72,6 @@ MatrixXd MatrixLUT::calculateR() {
     return R;
 }
 
-MatrixXd MatrixLUT::calculateV() {
-    MatrixXd result = MatrixXd::Zero(size, size);
-    for (Index m = 0; m < size; ++m)
-        V(m, m) = 3;
-
-    for (Index m = 0; m < size - 1; ++m)
-        V(m + 1, m) = -4;
-
-    for (Index m = 0; m < size - 2; ++m)
-        V(m + 2, m) = 1;
-    return result;
-}
 
 
 MatrixLUT::MatrixLUT(const Index size, const double alpha) {
@@ -91,10 +79,25 @@ MatrixLUT::MatrixLUT(const Index size, const double alpha) {
     this->alpha = alpha;
     this->gamma = std::ceil(alpha) - alpha;
 
-    this->Id = MatrixXd::Identity(size, size);
-
-    this->V = calculateV();
 
     MatrixXd R = calculateR();
     this->A = R + R.transpose();
+}
+
+MatrixXd MatrixLUT::calculate_V(const Index size, const double ni) {
+    MatrixXd result = MatrixXd::Zero(size, size);
+    for (Index m = 0; m < size; ++m)
+        result(m, m) = 3;
+
+    for (Index m = 0; m < size - 1; ++m)
+        result(m + 1, m) = -4;
+
+    for (Index m = 0; m < size - 2; ++m)
+        result(m + 2, m) = 1;
+
+    if (ni < 0.0) {
+        result.transposeInPlace();
+        result *= -1;
+    }
+    return result;
 }

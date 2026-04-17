@@ -4,13 +4,14 @@
 class Solver1d {
 
 public:
-    Solver1d(Index I, double L, double d, Index J, double t, double alpha);
-    void solve();
+    Solver1d(double alpha, double theta, Index I, double length, double dt, double K, double mi);
+    void solve() const;
 private:
-    MatrixLUT mLUT;
+    double theta;
     Index I;
-    Index J;
-    double L;
-    double d;
-    double t;
+    double dx;
+    double dt;
+    double omega;
+    double ni;
+    MatrixLUT mLUT;
 };
