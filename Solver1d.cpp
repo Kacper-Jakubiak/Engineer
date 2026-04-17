@@ -27,11 +27,12 @@ Solver1d::Solver1d(double alpha, double theta, Index I, double length, double dt
 
 void Solver1d::solve() const {
     VectorXd f = VectorXd::Zero(I + 1);
+    f(I / 2) = 1.0 / dx;
     const MatrixXd Id = MatrixXd::Identity(I + 1, I + 1);
     const MatrixXd V = MatrixLUT::calculate_V(I+1, ni);
+    const MatrixXd lhs = Id + theta * (ni*V + omega * mLUT.A);
+    const MatrixXd rhs = Id + (1.0 - theta) * (ni*V + omega * mLUT.A);
     while (true) {
-        const MatrixXd lhs = Id + theta * (ni*V + omega * mLUT.A);
-        const MatrixXd rhs = Id + (1.0 - theta) * (ni*V + omega * mLUT.A);
         const VectorXd next = lhs.ldlt().solve(rhs * f);
         f = next;
         break;
