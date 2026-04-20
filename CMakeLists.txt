@@ -3,11 +3,7 @@ project(Engineer)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Engineer main.cpp
-        MatrixLUT.cpp
-        MatrixLUT.h
-        Solver1d.cpp
-        Solver1d.h)
+add_executable(Engineer main.cpp)
 
 include(FetchContent)
 
