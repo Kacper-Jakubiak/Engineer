@@ -16,3 +16,5 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(eigen)
 
 target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+
+add_compile_definitions(-DPROJECT_ROOT="${CMAKE_SOURCE_DIR}")
