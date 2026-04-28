@@ -34,6 +34,10 @@ double get_lambda(Index k, Index m, double gamma) {
     return pow(m + 1, gamma + 1) - 2 * pow(m, gamma + 1) + pow(m - 1, gamma + 1);
 }
 
+double get_lambda(Index m) {
+    return 2.0/(1.0 + m);
+}
+
 MatrixXd calculate_V(double sign) {
     MatrixXd V = MatrixXd::Zero(I + 1, I + 1);
     for (Index i = 0; i < I + 1; i++) {
@@ -63,6 +67,49 @@ MatrixXd calculate_R1(double gamma) {
     return -1.0 / 2 * R;
 }
 
+MatrixXd calculate_R2(double gamma) {
+    MatrixXd R = MatrixXd::Zero(I + 1, I + 1);
+    for (Index i = 0; i < I + 1; i++) {
+        for (Index k = 0; k <= i; k++) {
+            const double lambda = (k == i) ? 1.0 : get_lambda(k, i - k, gamma);
+            if (k + 2 <= I)
+                R(i, k - 1) += -1.0 * lambda;
+            if (k + 1 <= I)
+                R(i, k - 2) += 16.0 * lambda;
+            R(i, k) += -30.0 * lambda;
+            if (k >= 1)
+                R(i, k - 1) += 16.0 * lambda;
+            if (k >= 2)
+                R(i, k - 2) += -1.0 * lambda;
+        }
+    }
+    return -1.0 / 12 * R;
+}
+
+MatrixXd calculate_R3() {
+    MatrixXd R = MatrixXd::Zero(I + 1, I + 1);
+    for (Index i = 0; i < I + 1; i++) {
+        for (Index k = 0; k <= i; k++) {
+            const double lambda = get_lambda(i-k);
+            R(i, k) += 1.0 * lambda;
+            if (k >= 1)
+                R(i, k - 1) += -1.0 * lambda;
+        }
+    }
+    return -1.0 * R;
+}
+
+MatrixXd get_R(int state, double gamma) {
+    switch (state) {
+        case 1:
+            return calculate_R1(gamma);
+        case 2:
+            return calculate_R2(gamma);
+        case 3:
+            return calculate_R3();
+    }
+}
+
 MatrixXd calculate_R1t(double gamma) {
     MatrixXd R = MatrixXd::Zero(I + 1, I + 1);
     for (Index i = 0; i < I + 1; i++) {
@@ -75,7 +122,8 @@ MatrixXd calculate_R1t(double gamma) {
                 R(i, k + 2) += -1.0 * lambda;
         }
     }
-    return -1.0 / 2 * R;
+    //Chyba tak?
+    return 1.0 / 2 * R;
 }
 
 int main(int argc, char *argv[]) {
@@ -112,26 +160,39 @@ int main(int argc, char *argv[]) {
         J = std::stoi(argv[8]);
     }
 
-
+    int state;
+    if (std::abs(alpha - 1.0) < 1e-6) {
+        state = 3;
+    } else if (alpha <= 1.0) {
+        state = 1;
+    } else {
+        state = 2;
+    }
     constexpr double pi = std::numbers::pi;
     double gamma = std::ceil(alpha) - alpha;
     double dx = length / static_cast<double>(I);
 
-    const double denominator = 2.0 * std::cos(pi * alpha / 2.0) * std::tgamma(2.0 + gamma) *
-                               std::pow(dx, alpha);
-    double omega = -K * dt / denominator;
+    double omega;
+    if (state != 3) {
+        const double denominator = 2.0 * std::cos(pi * alpha / 2.0) * std::tgamma(2.0 + gamma) *
+                           std::pow(dx, alpha);
+        omega = -K * dt / denominator;
+    }
+    else {
+        omega = -K * dt / (pi * dx);
+    }
     double ni = mi * dt / (2.0 * dx);
 
     VectorXd f = VectorXd::Zero(I + 1);
     f(I / 2) = length / dx;
     const MatrixXd Id = MatrixXd::Identity(I + 1, I + 1);
     const MatrixXd V = calculate_V(ni);
-    const MatrixXd R = calculate_R1(gamma);
-    const MatrixXd Rt = calculate_R1t(gamma);
+    const MatrixXd R = get_R(state, gamma);
+    const MatrixXd Rt = R.transpose().eval();//calculate_R1t(gamma);
 
     // cout << V.format(fmt) << endl << endl;
 
-    const MatrixXd A = R - Rt;
+    const MatrixXd A = R + Rt;
     const MatrixXd lhs = Id + theta * (ni * V + omega * A);
     const MatrixXd rhs = Id - (1.0 - theta) * (ni * V + omega * A);
     // cout << V << endl;
