@@ -26,7 +26,6 @@ double get_lambda(Index k, Index m, double gamma) {
     if (k < 0 || m <= 0 || I < k)
         throw std::runtime_error("Invalid lambda invocation");
 
-
     // if (k == 0 || k == I) {
     //     return pow(m-1, gamma+1) - (m - gamma - 1) * pow(m, gamma);
     // }
@@ -73,9 +72,9 @@ MatrixXd calculate_R2(double gamma) {
         for (Index k = 0; k <= i; k++) {
             const double lambda = (k == i) ? 1.0 : get_lambda(k, i - k, gamma);
             if (k + 2 <= I)
-                R(i, k - 1) += -1.0 * lambda;
+                R(i, k + 2) += -1.0 * lambda;
             if (k + 1 <= I)
-                R(i, k - 2) += 16.0 * lambda;
+                R(i, k + 1) += 16.0 * lambda;
             R(i, k) += -30.0 * lambda;
             if (k >= 1)
                 R(i, k - 1) += 16.0 * lambda;
@@ -107,6 +106,8 @@ MatrixXd get_R(int state, double gamma) {
             return calculate_R2(gamma);
         case 3:
             return calculate_R3();
+        default:
+            throw std::invalid_argument("Invalid state");
     }
 }
 
@@ -139,6 +140,7 @@ int main(int argc, char *argv[]) {
 
     double alpha, length, dt, K, mi, theta;
     int J;
+    int verbose;
     // double alpha = 0.75;
     // double length = 20.0;
     // double dt = 0.01;
@@ -146,9 +148,9 @@ int main(int argc, char *argv[]) {
     // double mi = 1.0;
     // double theta = 0.0;
     // int J = 10;
-    if (argc < 9) {
-        cout << "Enter: I alpha length dt K mi theta J\n";
-        cin >> I >> alpha >> length >> dt >> K >> mi >> theta >> J;
+    if (argc < 10) {
+        cout << "Enter: I alpha length dt K mi theta J verbose\n";
+        cin >> I >> alpha >> length >> dt >> K >> mi >> theta >> J >> verbose;
     } else {
         I = std::stoi(argv[1]);
         alpha = std::stod(argv[2]);
@@ -158,7 +160,21 @@ int main(int argc, char *argv[]) {
         mi = std::stod(argv[6]);
         theta = std::stod(argv[7]);
         J = std::stoi(argv[8]);
+        verbose = std::stoi(argv[9]);
     }
+
+    if (verbose > 0) {
+        cout << "I " << I;
+        cout << "\nalpha " << alpha;
+        cout << "\nlength " << length;
+        cout << "\ndt " << dt;
+        cout << "\nK " << K;
+        cout << "\nmi " << mi;
+        cout << "\ntheta " << theta;
+        cout << "\nJ " << J;
+        cout << "\nverbose " << verbose << endl;
+    }
+
 
     int state;
     if (std::abs(alpha - 1.0) < 1e-6) {
@@ -167,6 +183,9 @@ int main(int argc, char *argv[]) {
         state = 1;
     } else {
         state = 2;
+    }
+    if (verbose > 0) {
+        cout << "state: " << state << endl;
     }
     constexpr double pi = std::numbers::pi;
     double gamma = std::ceil(alpha) - alpha;
@@ -182,6 +201,10 @@ int main(int argc, char *argv[]) {
         omega = -K * dt / (pi * dx);
     }
     double ni = mi * dt / (2.0 * dx);
+    if (verbose > 0) {
+        cout << "omega: " << omega;
+        cout << "\nni: " << ni << endl;
+    }
 
     VectorXd f = VectorXd::Zero(I + 1);
     f(I / 2) = length / dx;
@@ -202,8 +225,10 @@ int main(int argc, char *argv[]) {
     history.push_back(f);
     LDLT<MatrixXd> solver(lhs);
     for (int h = 0; h < J; h++) {
-        // cout << f.transpose().format(fmt) << endl;
-        // cout << f.sum() << endl;
+        if (verbose > 0) {
+            cout << f.transpose().format(fmt) << endl;
+            cout << f.sum() << endl;
+        }
         const VectorXd next = solver.solve(rhs * f);
         f = next;
         history.push_back(f);
