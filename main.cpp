@@ -34,10 +34,10 @@ double get_lambda(Index k, Index m, double gamma) {
 }
 
 double get_lambda(Index m) {
-    return 2.0/(1.0 + m);
+    return 2.0/(1.0 + static_cast<double>(m));
 }
 
-MatrixXd calculate_V(double sign) {
+MatrixXd calculate_V(const double sign) {
     MatrixXd V = MatrixXd::Zero(I + 1, I + 1);
     for (Index i = 0; i < I + 1; i++) {
         V(i, i) = 3.0;
@@ -139,15 +139,8 @@ int main(int argc, char *argv[]) {
     cout << std::fixed;
 
     double alpha, length, dt, K, mi, theta;
-    int J;
-    int verbose;
-    // double alpha = 0.75;
-    // double length = 20.0;
-    // double dt = 0.01;
-    // double K = 1.0;
-    // double mi = 1.0;
-    // double theta = 0.0;
-    // int J = 10;
+    int J, verbose;
+
     if (argc < 10) {
         cout << "Enter: I alpha length dt K mi theta J verbose\n";
         cin >> I >> alpha >> length >> dt >> K >> mi >> theta >> J >> verbose;
@@ -162,7 +155,6 @@ int main(int argc, char *argv[]) {
         J = std::stoi(argv[8]);
         verbose = std::stoi(argv[9]);
     }
-
     if (verbose > 0) {
         cout << "I " << I;
         cout << "\nalpha " << alpha;
@@ -202,7 +194,8 @@ int main(int argc, char *argv[]) {
     }
     double ni = mi * dt / (2.0 * dx);
     if (verbose > 0) {
-        cout << "omega: " << omega;
+        cout << "gamma: " << gamma;
+        cout << "\nomega: " << omega;
         cout << "\nni: " << ni << endl;
     }
 
