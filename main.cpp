@@ -98,6 +98,19 @@ MatrixXd calculate_R3() {
     return -1.0 * R;
 }
 
+MatrixXd calculate_R3_ant() {
+    MatrixXd R = MatrixXd::Zero(I + 1, I + 1);
+    for (Index n = 0; n < I + 1; n++) {
+        const double lambda = get_lambda(n);
+        for (Index m = 0; m + n < I + 1; m++) {
+            R(m + n, m) += 1.0 * lambda;
+            if (m + n + 1 < I + 1)
+                R(m + n + 1, m) += -1.0 * lambda;
+        }
+    }
+    return -1.0 * R;
+}
+
 MatrixXd get_R(int state, double gamma) {
     switch (state) {
         case 1:
@@ -227,5 +240,5 @@ int main(int argc, char *argv[]) {
         history.push_back(f);
     }
     cout << f.transpose().format(fmt) << endl;
-    save_history(history, "output.txt");
+    save_history(history, "alfa15.txt");
 }
