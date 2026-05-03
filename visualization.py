@@ -78,13 +78,68 @@ def plot_data_with_slider(data):
 
     plt.show()
 
+def dashboard(data):
+    arr = np.array(data)
+    time_index = 0
+
+    # --- Precompute metrics ---
+    start_sum = np.sum(arr[0])
+    sums = np.sum(arr, axis=1) / start_sum
+
+    reversed_arr = arr[:, ::-1]
+    mse = np.mean((arr - reversed_arr) ** 2, axis=1)
+
+    t_values = np.arange(len(data))
+
+    # --- Layout (snapshot bigger) ---
+    fig, axs = plt.subplot_mosaic([["snap", "sum"], ["snap", "mse"]])
+    ax_snap, ax_sum, ax_mse = axs["snap"], axs["sum"], axs["mse"]
+    plt.subplots_adjust(bottom=0.2)
+
+    # --- Initial plots ---
+    plot_time_snapshot(ax_snap, data, time_index)
+
+    plot_sum(ax_sum, data)
+    plot_symmetry_mse(ax_mse, data)
+
+    # --- Add moving markers ---
+    sum_dot, = ax_sum.plot(time_index, sums[time_index], 'o')
+    mse_dot, = ax_mse.plot(time_index, mse[time_index], 'o')
+
+    # --- Slider ---
+    ax_slider = plt.axes([0.2, 0.08, 0.6, 0.03])
+    slider = Slider(
+        ax_slider,
+        'Time',
+        0,
+        len(data) - 1,
+        valinit=time_index,
+        valstep=1
+    )
+
+    # --- Update ---
+    def update(val):
+        t = int(slider.val)
+
+        # Update snapshot
+        plot_time_snapshot(ax_snap, data, t)
+
+        # Update dots
+        sum_dot.set_data([t], [sums[t]])
+        mse_dot.set_data([t], [mse[t]])
+
+        fig.canvas.draw_idle()
+
+    slider.on_changed(update)
+
+    plt.show()
 
 def main():
     # Load data
-    filename = "alfa1.txt"
+    filename = "alfa15.txt"
     data = read_data(filename)
 
-    plot_data_with_slider(data)
+    dashboard(data)
 
 if __name__ == "__main__":
   main()
