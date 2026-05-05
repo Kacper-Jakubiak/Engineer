@@ -36,18 +36,19 @@ def compare_distributions(calculated, theoretical):
 def main():
     filename = "output.txt"
     L = 100
-    sigma = 1.0 * 200 * 0.02
-    alpha = 0.8
+    sigma = 1.0 * 0.001 * 2500
+    alpha = 0.9
     data = read_data(filename)
     N = len(data[0])
     print(N)
 
 
-    calculated = data[-1].copy()
-    calculated /= np.sum(calculated)
+    calculated = np.array(data[-1])
+    calculated /= N
 
     x, f = alg(N, L, sigma, alpha)
     f *= L / N
+
     print(np.sum(f))
     print(np.sum(calculated))
     compare_distributions(calculated, f)
