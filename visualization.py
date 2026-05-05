@@ -58,7 +58,7 @@ def plot_data_with_slider(data):
     plot_time_snapshot(ax, data, time_index)
 
     # Slider setup
-    ax_slider = plt.axes([0.2, 0.1, 0.6, 0.03])
+    ax_slider = plt.axes((0.2, 0.1, 0.6, 0.03))
     slider = Slider(
         ax_slider,
         'Time',
@@ -86,5 +86,6 @@ def main():
 
     plot_data_with_slider(data)
 
-main()
+if __name__ == "__main__":
+  main()
 
