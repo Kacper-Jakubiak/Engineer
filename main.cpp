@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
     history.push_back(f);
     LDLT<MatrixXd> solver(lhs);
     for (int h = 0; h < J; h++) {
-        if (verbose > 0) {
+        if (verbose > 1) {
             cout << f.transpose().format(fmt) << endl;
             cout << f.sum() << endl;
         }
@@ -234,5 +234,7 @@ int main(int argc, char *argv[]) {
         history.push_back(f);
     }
     cout << f.transpose().format(fmt) << endl;
-    // save_history(history, "alfa15.txt");
+    std::stringstream ss;
+    ss << I << "_" << length << "_" << dt << "_" << K << "_" << mi << "_" << theta << "_" << J << "_" << alpha << ".txt";
+    save_history(history, ss.str());
 }
