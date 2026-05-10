@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import numpy as np
+from scipy.stats import norm
 
 def read_data(filename):
     data = []
@@ -8,6 +9,18 @@ def read_data(filename):
         for line in f:
             values = [float(x) for x in line.strip().split(';') if x]
             data.append(values)
+    return data
+
+def normal_distribution(length, I, sigma):
+    xs = np.linspace(0, length, I)
+    ys = norm.pdf(xs, loc = length/2, scale = sigma)
+    return ys
+
+def normal_distribution_over_time(length, I, dt, J, f0, K = 1.0):
+    data = [f0]
+    normal = sum(f0) / 100
+    for j in range(1, J):
+        data.append(normal * normal_distribution(length, I, np.sqrt(K*dt*j)))
     return data
 
 import numpy as np
@@ -136,10 +149,13 @@ def dashboard(data):
 
 def main():
     # Load data
-    filename = "alfa15.txt"
+    filename = "alfa2.txt"
     data = read_data(filename)
+    # K = sum(data[0])
+    # data2 = normal_distribution_over_time(40, 4001, 0.001, 1001, data[0])
 
     dashboard(data)
+    # dashboard(data2)
 
 if __name__ == "__main__":
   main()
