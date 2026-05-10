@@ -51,13 +51,14 @@ def main2():
 
 
 def main():
-    filename = "output.txt"
-    L = 100
-    K = 1.0
+    filename = "result.txt"
+    L = 200
+    K = 0.5
     dt = 0.001
-    J = 2500
+    J = 2000
     sigma = K * dt * J
-    alpha = 0.9
+    alpha = 1.0
+
     data = read_data(filename)
     N = len(data[-1]) - 1
     print(f"{N = }")
@@ -84,4 +85,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main2()
+    main()

@@ -3,7 +3,10 @@ project(Engineer)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Engineer main.cpp)
+add_executable(Engineer main.cpp
+        Schemer.cpp
+        Schemer.h
+)
 
 include(FetchContent)
 
