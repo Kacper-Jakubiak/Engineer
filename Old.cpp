@@ -159,38 +159,3 @@ void OldSchemer::run(Eigen::Index J) {
     }
     if (verbose > 2) std::cout << f.transpose() << std::endl;
 }
-
-
-
-
-void run(int argc, char *argv[]) {
-
-
-    VectorXd f = VectorXd::Zero(I + 1);
-    f(I / 2) = length / dx;
-    const MatrixXd Id = MatrixXd::Identity(I + 1, I + 1);
-    const MatrixXd V = calculate_V(ni);
-    const MatrixXd R = get_R(state, gamma);
-    const MatrixXd Rt = R.transpose().eval(); //calculate_R1t(gamma);
-
-    const MatrixXd A = R + Rt;
-    const MatrixXd lhs = Id + theta * (ni * V + omega * A);
-    const MatrixXd rhs = Id - (1.0 - theta) * (ni * V + omega * A);
-
-    vector<VectorXd> history;
-    history.push_back(f);
-    FullPivLU<MatrixXd> solver(lhs);
-    for (int h = 0; h < J; h++) {
-        if (verbose > 1) {
-            cout << f.transpose().format(fmt) << endl;
-            cout << f.sum() << endl;
-        }
-        const VectorXd next = solver.solve(rhs * f);
-        f = next;
-        history.push_back(f);
-    }
-    cout << f.transpose().format(fmt) << endl;
-    std::stringstream ss;
-    // ss << I << "_" << length << "_" << dt << "_" << K << "_" << mi << "_" << theta << "_" << J << "_" << alpha << ".txt";
-    save_history(history, "old");
-}

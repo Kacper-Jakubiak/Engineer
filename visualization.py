@@ -120,7 +120,7 @@ def dashboard(data):
     mse_dot, = ax_mse.plot(time_index, mse[time_index], 'o')
 
     # --- Slider ---
-    ax_slider = plt.axes([0.2, 0.08, 0.6, 0.03])
+    ax_slider = plt.axes((0.2, 0.08, 0.6, 0.03))
     slider = Slider(
         ax_slider,
         'Time',
@@ -149,7 +149,7 @@ def dashboard(data):
 
 def main():
     # Load data
-    filename = "alfa2.txt"
+    filename = "result_0.50.txt"
     data = read_data(filename)
     # K = sum(data[0])
     # data2 = normal_distribution_over_time(40, 4001, 0.001, 1001, data[0])

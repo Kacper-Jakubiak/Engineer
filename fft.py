@@ -4,14 +4,25 @@ from scipy.stats import norm, cauchy
 from scipy.special import rel_entr
 from visualization import read_data
 
-def alg(N, L, sigma, alpha):
+def function(k, sigma, alpha, beta, mi):
+    if alpha == 1:
+        half = -2/np.pi * np.log(np.abs(k))
+    else:
+        half = np.tan(np.pi*alpha/2)
+
+    first = 1j * k * mi
+
+    middle = np.abs(sigma * k)**alpha
+
+    return np.exp(first - middle * (1 + 1j * beta * np.sign(k) * half))
+
+def alg(N, L, sigma, alpha, beta, mi):
     k = 2*np.pi * np.fft.fftfreq(N, d=L / N)
 
-    g = np.exp(-np.abs(sigma * k)**alpha)
+    g = function(k, sigma, alpha, beta, mi)
 
     f = np.fft.ifft(g)
     f = np.real(f)
-
 
     f = np.fft.fftshift(f)
     x_plus = np.linspace(-L/2, L/2, N+1)#, endpoint=False)
@@ -22,6 +33,8 @@ def alg(N, L, sigma, alpha):
 def compare_distributions(calculated, theoretical):
     if theoretical.shape != calculated.shape:
         raise ValueError(f"Shapes do not match: {theoretical.shape} != {calculated.shape}")
+    # theoretical = theoretical / np.sum(theoretical)
+    # calculated = calculated / np.sum(calculated)
     mae = np.mean(np.abs(theoretical - calculated))
     mse = np.mean((theoretical - calculated)**2)
     kl_div = np.sum(rel_entr(calculated, theoretical))
@@ -34,30 +47,17 @@ def compare_distributions(calculated, theoretical):
     print(f"KS Statistic: {ks_stat:.6f}")
 
 
-def main2():
-    alphas = [0.5, 1.0, 1.5, 2.0]
-    L = 5
-    N = 1024
-    fs = []
-    for alpha in alphas:
-        x, f = alg(N, L, sigma=0.5, alpha=alpha)
-        fs.append(f)
-    for f, alpha in zip(fs, alphas):
-        plt.plot(x, f, label=f"alpha={alpha}")
-    plt.axhline(0, color='black', linewidth=1, ls='--')
-    plt.axvline(0, color='black', linewidth=1, ls='--')
-    plt.legend()
-    plt.show()
-
 
 def main():
-    filename = "result.txt"
-    L = 200
-    K = 0.5
+    filename = "result_0.50.txt"
+    L = 40
+    K = 1.0
     dt = 0.001
-    J = 2000
+    J = 1000
     sigma = K * dt * J
-    alpha = 1.0
+    beta = 1.0
+    alpha = 0.5
+    mi = 0.0
 
     data = read_data(filename)
     N = len(data[-1]) - 1
@@ -67,7 +67,7 @@ def main():
     calculated = np.array(data[-1])
     calculated /= (N + 1)
 
-    x, f = alg(N, L, sigma, alpha)
+    x, f = alg(N, L, sigma, alpha, beta, mi)
 
     print(np.sum(f))
     print(np.sum(calculated))
