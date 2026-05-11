@@ -96,7 +96,7 @@ Eigen::MatrixXd Schemer::get_diffusion_M3() const {
 }
 
 
-Eigen::MatrixXd Schemer::get_force() const {
+Eigen::MatrixXd Schemer::get_drift() const {
     Eigen::MatrixXd V = Eigen::MatrixXd::Zero(I + 1, I + 1);
     for (Eigen::Index i = 0; i < I + 1; i++) {
         V(i, i) = 3.0;
@@ -108,19 +108,6 @@ Eigen::MatrixXd Schemer::get_force() const {
     if (mi < 0)
         return -1.0 * ni * V.transpose();
     return ni * V;
-}
-
-Eigen::MatrixXd calculate_R3(Eigen::Index I) {
-    Eigen::MatrixXd R = Eigen::MatrixXd::Zero(I + 1, I + 1);
-    for (Eigen::Index i = 0; i < I + 1; i++) {
-        for (Eigen::Index k = 0; k <= i; k++) {
-            const double lambda = 1.0 / (2.0 * (i - k) + 1.0);
-            R(i, k) += 1.0 * lambda;
-            if (k >= 1)
-                R(i, k - 1) += -1.0 * lambda;
-        }
-    }
-    return -1.0 * R;
 }
 
 
@@ -140,21 +127,11 @@ void Schemer::run(Eigen::Index J) {
             exit(1);
     }
 
-    MatrixXd force = get_force();
+    MatrixXd force = get_drift();
 
     const MatrixXd A = id + theta * (force + diffusion);
     const MatrixXd B = id - (1 - theta) * (force + diffusion);
 
-    if (verbose > 1) {
-        MatrixXd test = calculate_R3(I);
-        double omega2 = -K * dt / (std::numbers::pi * dx);
-        std::cout << "OMG" << omega << " " << omega2 << std::endl;
-        std::cout << diffusion << std::endl << std::endl;
-        std::cout << (test + test.transpose().eval()) * omega2 << std::endl;
-        // std::cout << A << std::endl<< std::endl;
-        // std::cout << B << std::endl<< std::endl;
-        exit(0);
-    }
 
     VectorXd f = VectorXd::Zero(I + 1);
     f(I / 2) = length / dx;

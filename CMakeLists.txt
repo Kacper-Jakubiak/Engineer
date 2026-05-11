@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(Engineer main.cpp
         Schemer.cpp
         Schemer.h
+        Old.h
+        Old.cpp
 )
 
 include(FetchContent)
