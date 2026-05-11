@@ -19,18 +19,15 @@ Schemer::Schemer(double alpha, double beta, double K, double dt, Eigen::Index I,
     else
         state = 2;
 
-    if (state != 3)
-        omega = K * dt / (std::tgamma(n + 1 - alpha) * pow(dx, alpha));
-    else
-        omega = K * dt / (dx * std::numbers::pi);
-
     if (state == 3) {
+        omega = K * dt / (dx * std::numbers::pi);
+        L = 0.0;
+        R = 0.0;
+    } else {
         const double denominator = 2.0 * std::cos(std::numbers::pi * alpha / 2.0);
         L = -(1.0 + beta) / denominator;
         R = -(1.0 - beta) / denominator;
-    } else {
-        L = 0.0;
-        R = 0.0;
+        omega = K * dt / (std::tgamma(n + 1 - alpha) * pow(dx, alpha));
     }
 
     if (verbose > 0) {
@@ -109,7 +106,7 @@ Eigen::MatrixXd Schemer::get_force() const {
             V(i, i - 2) = 1.0;
     }
     if (mi < 0)
-        return -V.transpose();
+        return -1.0 * ni * V.transpose();
     return ni * V;
 }
 
@@ -169,7 +166,7 @@ void Schemer::run(Eigen::Index J) {
     const FullPivLU<MatrixXd> solver(A);
     std::cout << "SIMULATING..." << std::endl;
     for (int h = 0; h < J; h++) {
-        if (verbose > 1) {
+        if (verbose > 2) {
             std::cout << f.transpose() << std::endl;
             std::cout << f.sum() << std::endl;
         }
@@ -177,7 +174,7 @@ void Schemer::run(Eigen::Index J) {
         f = next;
         history.push_back(f);
     }
-    if (verbose > 1) std::cout << f.transpose() << std::endl;
+    if (verbose > 2) std::cout << f.transpose() << std::endl;
 }
 
 
