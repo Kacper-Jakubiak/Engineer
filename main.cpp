@@ -1,5 +1,5 @@
 #include <iostream>
-#include <Eigen/Dense>
+#include <format>
 
 #include "Schemer.h"
 using namespace std;
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
         std::cout << "I " << I << "\nalpha " << alpha << "\nlength " << length << "\ndt " << dt << "\nK " << K <<
                 "\nmi " << mi << "\ntheta " << theta << "\nJ " << J << "\nverbose " << verbose << '\n';
 
-    Schemer simulator{alpha, 0.0, K, dt, I, length, theta, verbose};
+    Schemer simulator{alpha, 0.0, K, dt, I, length, mi, theta, verbose};
     simulator.run(J);
-    simulator.save_history("result.txt");
+    simulator.save_history("result_" + std::format("{:.2f}", alpha) + ".txt");
 }
