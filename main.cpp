@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         theta = std::stod(argv[6]);
         J = std::stoi(argv[7]);
         verbose = std::stoi(argv[8]);
-        beta = std::stoi(argv[9]);
+        beta = std::stod(argv[9]);
         if (argc == 10) {
             cout << "Enter alpha: " << endl;
             cin >> alpha;
@@ -31,7 +31,12 @@ int main(int argc, char *argv[]) {
         std::cout << "I " << I << "\nalpha " << alpha << "\nlength " << length << "\nbeta " << beta << "\ndt " << dt << "\nK " << K <<
                 "\nmi " << mi << "\ntheta " << theta << "\nJ " << J << "\nverbose " << verbose << '\n';
 
+    std::string filename;
+    cout << "Enter filename: ";
+    cin >> filename;
+
     Schemer simulator{alpha, beta, K, dt, I, length, mi, theta, verbose};
     simulator.run(J);
-    simulator.save_history("result_" + std::format("{:.2f}", alpha) + ".txt");
+    simulator.save_history(filename + ".txt");
+    // simulator.save_history("mibeta_" + std::format("{:.0f}", mi) + std::format("{:.2f}", beta)+ ".txt");
 }

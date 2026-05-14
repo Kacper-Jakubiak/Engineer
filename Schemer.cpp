@@ -140,7 +140,7 @@ void Schemer::run(Eigen::Index J) {
     history.reserve(J + 1);
     history.push_back(f);
     std::cout << "SOLVING..." << std::endl;
-    const FullPivLU<MatrixXd> solver(A);
+    const PartialPivLU<MatrixXd> solver(A);
     std::cout << "SIMULATING..." << std::endl;
     for (int h = 0; h < J; h++) {
         if (verbose > 2) {

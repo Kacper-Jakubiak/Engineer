@@ -10,7 +10,7 @@ def function(k, sigma, alpha, beta, mi):
     else:
         half = np.tan(np.pi*alpha/2)
 
-    first = 1j * k * mi
+    first = -1j * k * mi
 
     middle = np.abs(sigma * k)**alpha
 
@@ -49,14 +49,14 @@ def compare_distributions(calculated, theoretical):
 
 
 def main():
-    filename = "result_0.50.txt"
+    filename = "K_1.00.txt"#result_1.90.txt"
     L = 40
     K = 1.0
     dt = 0.001
     J = 1000
     sigma = K * dt * J
-    beta = 1.0
-    alpha = 0.5
+    beta = 0.0
+    alpha = 1.9
     mi = 0.0
 
     data = read_data(filename)
