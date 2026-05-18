@@ -20,7 +20,7 @@ private:
     const double mi;
     Eigen::MatrixXd step_matrix;
     const Eigen::VectorXd initial_values;
-    const Eigen::VectorXd force;
+    const std::vector<double> force;
     Eigen::VectorXd current;
 
     double dx;
@@ -30,7 +30,6 @@ private:
     double n;
     double ni;
     SchemeType state;
-    std::vector<Eigen::VectorXd> history;
 
     void initialize_params();
 
@@ -45,11 +44,11 @@ private:
 
 public:
     Schemer(double alpha, double beta, double K,
-            double dt, Eigen::Index I, double length, double mi, double theta, int verbose, Eigen::VectorXd initial_values, Eigen::VectorXd force);
+            double dt, Eigen::Index I, double length, double mi, double theta, int verbose, Eigen::VectorXd initial_values, std::vector<double> force);
 
     void reset_simulation();
-    void run(int steps);
-    void save_history(const std::string &filename) const;
+    void run(int steps, int save_every = 0);
+    void save_result(const std::string &filename) const;
 
     Schemer(const Schemer &) = delete;
 

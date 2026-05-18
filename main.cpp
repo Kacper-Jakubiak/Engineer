@@ -36,7 +36,7 @@ int main(const int argc, char *argv[]) {
     cout << "Enter filename: ";
     cin >> filename;
 
-    cout << "BUILDING.." << std::endl;
+    cout << "BUILDING..." << std::endl;
     Schemer simulator = SchemerBuilder()
             .set_alpha(alpha)
             .set_beta(beta)
@@ -48,8 +48,8 @@ int main(const int argc, char *argv[]) {
             .set_theta(theta)
             .set_verbosity(verbose)
             .build();
-    cout << "RUNNING.." << std::endl;
-    simulator.run(steps);
-    cout << "FINISHED.." << std::endl;
-    simulator.save_history(filename + ".txt");
+    cout << "RUNNING..." << std::endl;
+    simulator.run(steps, 1);
+    cout << "FINISHED." << std::endl;
+    simulator.save_result(filename + ".txt");
 }

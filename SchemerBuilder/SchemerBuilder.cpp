@@ -115,24 +115,23 @@ Schemer SchemerBuilder::build() const {
             break;
     }
 
-    Eigen::VectorXd force;
+    std::vector<double> force_values(I+1, 0.0);
     switch (force_type) {
         case ForceType::Drift:
-            force = Eigen::VectorXd::Zero(I+1);
+            force_values.assign(I+1, drift);
             break;
         case ForceType::Function:
             if (force_function == nullptr)
                 throw std::invalid_argument("force function not set");
-            force = Eigen::VectorXd::Zero(I+1);
             for (Eigen::Index i = 0; i <= I; i++) {
                 const double position = dx * i;
-                force(i) = force_function(position);
+                force_values[i] = force_function(position);
             }
             break;
         case ForceType::Vector:
             if (force_vector.size() != I + 1)
                 throw std::invalid_argument("force vector must have size I+1");
-            force = force_vector;
+            force_values = force_vector;
             break;
     }
 
@@ -147,6 +146,6 @@ Schemer SchemerBuilder::build() const {
         theta,
         verbose,
         std::move(starting_values),
-        std::move(force)
+        std::move(force_values)
     };
 }
