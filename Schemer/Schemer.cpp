@@ -5,30 +5,28 @@
 #include <Eigen/Dense>
 
 Schemer::Schemer(double alpha, double beta, double K, double dt, Eigen::Index I, double length, double mi,
-                 double theta, int verbose) : alpha(alpha), beta(beta), K(K), dt(dt), I(I), length(length),
-                                              theta(theta), verbose(verbose), mi(mi) {
+                 double theta, int verbose, Eigen::VectorXd initial_values, Eigen::VectorXd force) : alpha(alpha), beta(beta), K(K), dt(dt), I(I), length(length),
+                                              theta(theta), verbose(verbose), mi(mi), initial_values(std::move(initial_values)), force(std::move(force)) {
     initialize_params();
     initialize_matrices();
-
-    initial = Eigen::VectorXd::Zero(I + 1);
-    initial(I / 2) = length / dx;
-
-    const Eigen::PartialPivLU<Eigen::MatrixXd> solver(Lhs);
-    step_matrix = solver.solve(Rhs);
 
     reset_simulation();
 }
 
 void Schemer::reset_simulation() {
     history.clear();
-    history.push_back(initial);
-    current = initial;
+    history.push_back(initial_values);
+    current = initial_values;
 }
 
 void Schemer::run(const int steps) {
+    const int log_interval = std::max(1, steps / 20);
     for (int h = 0; h < steps; h++) {
         current = step_matrix * current;
         history.push_back(current);
+        if (verbose > 1 && h % log_interval == 0) {
+            std::cout << "Progress: " << (100.0 * h / steps) << "%\n";
+        }
     }
 }
 

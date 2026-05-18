@@ -18,10 +18,9 @@ private:
     const double theta;
     const int verbose;
     const double mi;
-    Eigen::MatrixXd Lhs;
-    Eigen::MatrixXd Rhs;
     Eigen::MatrixXd step_matrix;
-    Eigen::VectorXd initial;
+    const Eigen::VectorXd initial_values;
+    const Eigen::VectorXd force;
     Eigen::VectorXd current;
 
     double dx;
@@ -46,7 +45,7 @@ private:
 
 public:
     Schemer(double alpha, double beta, double K,
-            double dt, Eigen::Index I, double length, double mi, double theta, int verbose);
+            double dt, Eigen::Index I, double length, double mi, double theta, int verbose, Eigen::VectorXd initial_values, Eigen::VectorXd force);
 
     void reset_simulation();
     void run(int steps);

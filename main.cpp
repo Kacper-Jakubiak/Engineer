@@ -46,7 +46,7 @@ int main(const int argc, char *argv[]) {
             .set_length(length)
             .set_mi(mi)
             .set_theta(theta)
-            .set_verbose(verbose)
+            .set_verbosity(verbose)
             .build();
     cout << "RUNNING.." << std::endl;
     simulator.run(steps);
