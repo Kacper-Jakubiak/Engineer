@@ -1,5 +1,6 @@
 #include <iostream>
 #include <format>
+#include <fstream>
 
 #include "include/Schemer.h"
 #include "include/SchemerBuilder.h"
@@ -35,24 +36,25 @@ int main(const int argc, char *argv[]) {
     std::string filename;
     cout << "Enter filename: ";
     // cin >> filename;
+    std::ofstream out_stream(std::string(PROJECT_ROOT) + "/history.txt");
 
     cout << "BUILDING..." << std::endl;
     Schemer simulator = SchemerBuilder()
             .set_alpha(alpha)
             .set_beta(beta)
-            .set_K(K)
+            .set_sigma(K)
             .set_dt(dt)
-            .set_I(I)
+            .set_grid_size(I)
             .set_length(length)
-            .set_mi(mi)
+            .set_drift(mi)
             .set_theta(theta)
             .set_verbosity(verbose)
-            .set_initial(I/2)
+            .set_zero_point(I/2)
             // .set_mi(10.0)
             .set_force([](double x){return -x;})
             .build();
     cout << "RUNNING..." << std::endl;
-    simulator.run(steps, 1);
+    simulator.run(steps, 1, &out_stream);
     cout << "FINISHED." << std::endl;
     // simulator.save_result(filename + ".txt");
 }

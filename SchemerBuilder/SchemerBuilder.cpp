@@ -1,4 +1,5 @@
 #include "../include/SchemerBuilder.h"
+#include <iostream>
 
 SchemerBuilder& SchemerBuilder::set_alpha(const double value) {
     alpha = value;
@@ -10,8 +11,8 @@ SchemerBuilder& SchemerBuilder::set_beta(const double value) {
     return *this;
 }
 
-SchemerBuilder& SchemerBuilder::set_K(const double value) {
-    K = value;
+SchemerBuilder& SchemerBuilder::set_sigma(const double value) {
+    sigma = value;
     return *this;
 }
 
@@ -20,8 +21,8 @@ SchemerBuilder& SchemerBuilder::set_dt(const double value) {
     return *this;
 }
 
-SchemerBuilder& SchemerBuilder::set_I(const Eigen::Index value) {
-    I = value;
+SchemerBuilder& SchemerBuilder::set_grid_size(const long long int value) {
+    grid_size = value;
     return *this;
 }
 
@@ -30,8 +31,11 @@ SchemerBuilder& SchemerBuilder::set_length(const double value) {
     return *this;
 }
 
-SchemerBuilder& SchemerBuilder::set_mi(const double value) {
+SchemerBuilder& SchemerBuilder::set_drift(const double value) {
+    if (force_type != ForceType::Drift)
+        std::cerr << "[WARNING]: force already set, drift will be used instead\n";
     mi = value;
+    force_type = ForceType::Drift;
     return *this;
 }
 
@@ -45,33 +49,42 @@ SchemerBuilder& SchemerBuilder::set_verbosity(const int value) {
     return *this;
 }
 
-SchemerBuilder & SchemerBuilder::set_initial(const Eigen::VectorXd &value) {
+SchemerBuilder & SchemerBuilder::set_initial_conditions(const Eigen::VectorXd &value) {
     initial_vector = value;
     initialization_type = InitialType::Vector;
     return *this;
 }
 
-SchemerBuilder & SchemerBuilder::set_initial(const Eigen::Index value) {
-    dirac_index = value;
+SchemerBuilder & SchemerBuilder::set_initial_conditions(const std::vector<double> &value) {
+    initial_vector = Eigen::Map<const Eigen::VectorXd>(
+        value.data(),
+        static_cast<Eigen::Index>(value.size())
+        );
+    initialization_type = InitialType::Vector;
+    return *this;
+}
+
+SchemerBuilder & SchemerBuilder::set_zero_point(const long long int value) {
+    zero_index = value;
     initialization_type = InitialType::Dirac;
     return *this;
 }
 
 SchemerBuilder & SchemerBuilder::set_force(const std::vector<double> &value) {
+    if (mi != 0.0)
+        std::cerr << "[WARNING]: drift already set, resetting drift to 0.0. Force will be used instead\n";
     force_vector = value;
+    mi = 0.0;
     force_type = ForceType::Vector;
     return *this;
 }
 
 SchemerBuilder & SchemerBuilder::set_force(double(*value)(double)) {
+    if (mi != 0.0)
+        std::cerr << "[WARNING]: drift already set, resetting drift to 0.0. Force will be used instead\n";
     force_function = value;
+    mi = 0.0;
     force_type = ForceType::Function;
-    return *this;
-}
-
-SchemerBuilder & SchemerBuilder::set_force(const double value) {
-    drift = value;
-    force_type = ForceType::Drift;
     return *this;
 }
 
@@ -79,7 +92,7 @@ Schemer SchemerBuilder::build() const {
     if (dt <= 0.0)
         throw std::invalid_argument("dt must be positive");
 
-    if (I <= 0)
+    if (grid_size <= 0)
         throw std::invalid_argument("I must be positive");
 
     if (length <= 0.0)
@@ -94,53 +107,63 @@ Schemer SchemerBuilder::build() const {
     if (std::abs(beta) > 1.0)
         throw std::invalid_argument("beta must be in [-1, 1]");
 
-    const double dx = length / I;
+    const double dx = length / grid_size;
+    Eigen::Index starting_index;
 
     Eigen::VectorXd starting_values;
     switch (initialization_type) {
         case InitialType::Middle:
-            starting_values = Eigen::VectorXd::Zero(I+1);
-            starting_values(I/2) = static_cast<double>(I);
+            starting_index = grid_size / 2;
+            starting_values = Eigen::VectorXd::Zero(grid_size+1);
+            starting_values(starting_index) = static_cast<double>(grid_size);
             break;
         case InitialType::Dirac:
-            if (dirac_index < 0 || dirac_index > I)
+            if (zero_index < 0 || zero_index > grid_size)
                 throw std::invalid_argument("initial_index must be in [0, I]");
-            starting_values = Eigen::VectorXd::Zero(I+1);
-            starting_values(dirac_index) = static_cast<double>(I);
+            starting_index = zero_index;
+            starting_values = Eigen::VectorXd::Zero(grid_size+1);
+            starting_values(zero_index) = static_cast<double>(grid_size);
             break;
         case InitialType::Vector:
-            if (initial_vector.size() != I + 1)
+            if (initial_vector.size() != grid_size + 1)
                 throw std::invalid_argument("initial values must have size I+1");
+            starting_index = grid_size / 2;
             starting_values = initial_vector;
             break;
+        default:
+            throw std::logic_error("Unhandled InitialType enum value");
     }
 
-    std::vector<double> force_values(I+1, 0.0);
+    std::vector<double> force_values;
     switch (force_type) {
         case ForceType::Drift:
-            force_values.assign(I+1, drift);
+            force_values.assign(grid_size + 1, 0.0);
             break;
         case ForceType::Function:
             if (force_function == nullptr)
                 throw std::invalid_argument("force function not set");
-            for (Eigen::Index i = 0; i <= I; i++) {
-                const double position = dx * (i - dirac_index);
-                force_values[i] = force_function(position);
+
+            force_values.reserve(grid_size + 1);
+            for (Eigen::Index i = 0; i <= grid_size; i++) {
+                const double position = dx * (i - starting_index);
+                force_values.push_back(force_function(position));
             }
             break;
         case ForceType::Vector:
-            if (force_vector.size() != I + 1)
+            if (force_vector.size() != grid_size + 1)
                 throw std::invalid_argument("force vector must have size I+1");
             force_values = force_vector;
             break;
+        default:
+            throw std::logic_error("Unhandled ForceType enum value");
     }
 
     return {
         alpha,
         beta,
-        K,
+        sigma,
         dt,
-        I,
+        grid_size,
         length,
         mi,
         theta,

@@ -17,17 +17,15 @@ void Schemer::reset_simulation() {
     current = initial_values;
 }
 
-void Schemer::run(const int steps, const int save_every) {
+void Schemer::run(const int steps, const int save_every, std::ostream* os) {
     if (steps <= 0)
         throw std::invalid_argument("steps must be > 0");
     if (save_every < 0)
         throw std::invalid_argument("save_every must be >= 0");
+    if (save_every > 0 && os == nullptr)
+        throw std::invalid_argument("stream is required");
 
     const int log_interval = std::max(1, steps / 20);
-    std::ofstream out_stream;
-    if (save_every > 0) {
-        out_stream.open(std::string(PROJECT_ROOT) + "/" + "history.txt");
-    }
 
     for (int h = 0; h < steps; h++) {
         current = step_matrix * current;
@@ -36,8 +34,8 @@ void Schemer::run(const int steps, const int save_every) {
         }
         if (save_every > 0 && h % save_every == 0) {
             for (Eigen::Index i = 0; i < current.size(); i++)
-                out_stream << current(i) << ";";
-            out_stream << std::endl;
+                *os << current(i) << ";";
+            *os << std::endl;
         }
     }
 }

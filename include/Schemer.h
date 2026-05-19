@@ -48,7 +48,7 @@ public:
             double dt, Eigen::Index I, double length, double mi, double theta, int verbose, Eigen::VectorXd initial_values, std::vector<double> force);
 
     void reset_simulation();
-    void run(int steps, int save_every = 0);
+    void run(int steps, int save_every = 0, std::ostream* os = nullptr);
     void save_result(const std::string &filename) const;
 
     Schemer(const Schemer &) = delete;
