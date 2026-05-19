@@ -41,6 +41,7 @@ private:
     [[nodiscard]] Eigen::MatrixXd get_diffusion_M2() const;
     [[nodiscard]] Eigen::MatrixXd get_diffusion_M3() const;
     [[nodiscard]] Eigen::MatrixXd get_drift() const;
+    [[nodiscard]] Eigen::MatrixXd get_force() const;
 
 public:
     Schemer(double alpha, double beta, double K,

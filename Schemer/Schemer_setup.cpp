@@ -37,7 +37,9 @@ void Schemer::initialize_matrices() {
         default: throw std::runtime_error("Invalid Scheme Type");
     }
 
-    const Eigen::MatrixXd force_matrix = get_drift();
+    Eigen::MatrixXd force_matrix;
+    if (mi == 0.0) {force_matrix = get_force();}
+    else {force_matrix = get_drift();}
 
     const Eigen::MatrixXd id = Eigen::MatrixXd::Identity(I + 1, I + 1);
 

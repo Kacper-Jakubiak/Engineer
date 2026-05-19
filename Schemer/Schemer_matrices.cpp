@@ -79,3 +79,19 @@ Eigen::MatrixXd Schemer::get_drift() const {
         return -1.0 * ni * V.transpose();
     return ni * V;
 }
+
+Eigen::MatrixXd Schemer::get_force() const {
+    Eigen::MatrixXd V = Eigen::MatrixXd::Zero(I + 1, I + 1);
+    for (Eigen::Index i = 0; i < I + 1; i++) {
+        if (i > 0) {
+            V(i, i) -= force[i-1];
+            V(i-1, i) += force[i];
+        }
+        if (i < I) {
+            V(i, i) += force[i+1];
+            V(i+1, i) += force[i];
+        }
+    }
+    V *= dt / (2 * dx);
+    return V;
+}
