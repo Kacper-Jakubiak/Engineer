@@ -34,7 +34,7 @@ int main(const int argc, char *argv[]) {
 
     std::string filename;
     cout << "Enter filename: ";
-    cin >> filename;
+    // cin >> filename;
 
     cout << "BUILDING..." << std::endl;
     Schemer simulator = SchemerBuilder()
@@ -47,9 +47,12 @@ int main(const int argc, char *argv[]) {
             .set_mi(mi)
             .set_theta(theta)
             .set_verbosity(verbose)
+            .set_initial(I/2)
+            // .set_mi(10.0)
+            .set_force([](double x){return -x;})
             .build();
     cout << "RUNNING..." << std::endl;
     simulator.run(steps, 1);
     cout << "FINISHED." << std::endl;
-    simulator.save_result(filename + ".txt");
+    // simulator.save_result(filename + ".txt");
 }

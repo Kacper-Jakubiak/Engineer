@@ -124,7 +124,7 @@ Schemer SchemerBuilder::build() const {
             if (force_function == nullptr)
                 throw std::invalid_argument("force function not set");
             for (Eigen::Index i = 0; i <= I; i++) {
-                const double position = dx * i;
+                const double position = dx * (i - dirac_index);
                 force_values[i] = force_function(position);
             }
             break;

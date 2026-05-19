@@ -85,11 +85,11 @@ Eigen::MatrixXd Schemer::get_force() const {
     for (Eigen::Index i = 0; i < I + 1; i++) {
         if (i > 0) {
             V(i, i) -= force[i-1];
-            V(i-1, i) += force[i];
+            V(i, i-1) -= force[i];
         }
         if (i < I) {
             V(i, i) += force[i+1];
-            V(i+1, i) += force[i];
+            V(i, i+1) += force[i];
         }
     }
     V *= dt / (2 * dx);
