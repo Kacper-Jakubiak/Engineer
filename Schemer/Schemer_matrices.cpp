@@ -1,22 +1,22 @@
 #include "../include/Schemer.h"
 
 std::vector<double> Schemer::get_lambdas() const {
-    std::vector<double> result(I+3);
-    for (int i = 1; i <= I+2; i++) {
-        result[i] = pow(i, n - alpha) - pow(i - 1, n - alpha);
+    std::vector<double> result(size + 2);
+    for (int i = 1; i < size + 2; i++) {
+        result[i] = pow(i, n - physics.alpha) - pow(i - 1, n - physics.alpha);
     }
 
     return result;
 }
 
 Eigen::MatrixXd Schemer::get_diffusion_M1() const {
-    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(I + 1, I + 1);
+    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(size, size);
     const auto lambda = get_lambdas();
 
     const double v0 = lambda[1];
     M.diagonal().setConstant(-1.0 * (L + R) * omega * v0);
 
-    for (Eigen::Index i = 1; i <= I; i++) {
+    for (Eigen::Index i = 1; i < size; i++) {
         double value = lambda[i] - lambda[i + 1];
         value *= omega;
         M.diagonal(-i).setConstant(value * L);
@@ -28,7 +28,7 @@ Eigen::MatrixXd Schemer::get_diffusion_M1() const {
 
 
 Eigen::MatrixXd Schemer::get_diffusion_M2() const {
-    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(I + 1, I + 1);
+    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(size, size);
     const auto lambda = get_lambdas();
 
     double v0 = lambda[2] - 2.0 * lambda[1];
@@ -39,7 +39,7 @@ Eigen::MatrixXd Schemer::get_diffusion_M2() const {
     M.diagonal(-1).setConstant(-1.0 * (L * omega * v1 + R * omega * v2));
     M.diagonal(1).setConstant(-1.0 * (R * omega * v1 + L * omega * v2));
 
-    for (Eigen::Index i = 2; i <= I; i++) {
+    for (Eigen::Index i = 2; i < size; i++) {
         double value = lambda[i + 2] - 2 * lambda[i + 1] + lambda[i];
         value *= omega;
         M.diagonal(-i).setConstant(-1.0 * value * L);
@@ -51,11 +51,11 @@ Eigen::MatrixXd Schemer::get_diffusion_M2() const {
 
 
 Eigen::MatrixXd Schemer::get_diffusion_M3() const {
-    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(I + 1, I + 1);
+    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(size, size);
 
     M.diagonal().setConstant(2.0 * omega);
 
-    for (Eigen::Index i = 1; i <= I; i++) {
+    for (Eigen::Index i = 1; i < size; i++) {
         double value = 1.0 / (2.0 * i + 1.0) - 1.0 / (2.0 * (i - 1) + 1.0);
         value *= omega;
         M.diagonal(-i).setConstant(value);
@@ -67,31 +67,34 @@ Eigen::MatrixXd Schemer::get_diffusion_M3() const {
 
 
 Eigen::MatrixXd Schemer::get_drift() const {
-    Eigen::MatrixXd V = Eigen::MatrixXd::Zero(I + 1, I + 1);
-    for (Eigen::Index i = 0; i < I + 1; i++) {
+    Eigen::MatrixXd V = Eigen::MatrixXd::Zero(size, size);
+    for (Eigen::Index i = 0; i < size; i++) {
         V(i, i) = 3.0;
         if (i >= 1)
             V(i, i - 1) = -4.0;
         if (i >= 2)
             V(i, i - 2) = 1.0;
     }
+
+    const double ni = mi * solving.dt / (2.0 * dx);
+
     if (mi < 0)
         return -1.0 * ni * V.transpose();
     return ni * V;
 }
 
 Eigen::MatrixXd Schemer::get_force() const {
-    Eigen::MatrixXd V = Eigen::MatrixXd::Zero(I + 1, I + 1);
-    for (Eigen::Index i = 0; i < I + 1; i++) {
+    Eigen::MatrixXd V = Eigen::MatrixXd::Zero(size, size);
+    for (Eigen::Index i = 0; i < size; i++) {
         if (i > 0) {
             V(i, i) -= force[i-1];
             V(i, i-1) -= force[i];
         }
-        if (i < I) {
+        if (i < size - 1) {
             V(i, i) += force[i+1];
             V(i, i+1) += force[i];
         }
     }
-    V *= dt / (2 * dx);
+    V *= solving.dt / (2 * dx);
     return V;
 }

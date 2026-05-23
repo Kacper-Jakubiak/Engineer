@@ -2,45 +2,45 @@
 #include <iostream>
 
 SchemerBuilder& SchemerBuilder::set_alpha(const double value) {
-    alpha = value;
+    physics.alpha = value;
     return *this;
 }
 
 SchemerBuilder& SchemerBuilder::set_beta(const double value) {
-    beta = value;
+    physics.beta = value;
     return *this;
 }
 
 SchemerBuilder& SchemerBuilder::set_sigma(const double value) {
-    sigma = value;
+    physics.sigma = value;
     return *this;
 }
 
 SchemerBuilder& SchemerBuilder::set_dt(const double value) {
-    dt = value;
+    solving.dt = value;
     return *this;
 }
 
 SchemerBuilder& SchemerBuilder::set_grid_size(const long long int value) {
-    grid_size = value;
+    solving.grid_points = value;
     return *this;
 }
 
 SchemerBuilder& SchemerBuilder::set_length(const double value) {
-    length = value;
+    physics.length = value;
     return *this;
 }
 
 SchemerBuilder& SchemerBuilder::set_drift(const double value) {
     if (force_type != ForceType::Drift)
         std::cerr << "[WARNING]: force already set, drift will be used instead\n";
-    mi = value;
+    physics.force_mode = value;
     force_type = ForceType::Drift;
     return *this;
 }
 
 SchemerBuilder& SchemerBuilder::set_theta(const double value) {
-    theta = value;
+    solving.theta = value;
     return *this;
 }
 
@@ -56,10 +56,7 @@ SchemerBuilder & SchemerBuilder::set_initial_conditions(const Eigen::VectorXd &v
 }
 
 SchemerBuilder & SchemerBuilder::set_initial_conditions(const std::vector<double> &value) {
-    initial_vector = Eigen::Map<const Eigen::VectorXd>(
-        value.data(),
-        static_cast<Eigen::Index>(value.size())
-        );
+    initial_vector = Eigen::VectorXd::Map(value.data(), static_cast<Eigen::Index>(value.size()));
     initialization_type = InitialType::Vector;
     return *this;
 }
@@ -71,104 +68,100 @@ SchemerBuilder & SchemerBuilder::set_zero_point(const long long int value) {
 }
 
 SchemerBuilder & SchemerBuilder::set_force(const std::vector<double> &value) {
-    if (mi != 0.0)
+    if (force_type == ForceType::Drift && std::get<double>(physics.force_mode) != 0.0)
         std::cerr << "[WARNING]: drift already set, resetting drift to 0.0. Force will be used instead\n";
     force_vector = value;
-    mi = 0.0;
     force_type = ForceType::Vector;
     return *this;
 }
 
-SchemerBuilder & SchemerBuilder::set_force(double(*value)(double)) {
-    if (mi != 0.0)
+SchemerBuilder & SchemerBuilder::set_force(std::function<double(double)> value) {
+    if (force_type == ForceType::Drift && std::get<double>(physics.force_mode) != 0.0)
         std::cerr << "[WARNING]: drift already set, resetting drift to 0.0. Force will be used instead\n";
-    force_function = value;
-    mi = 0.0;
+    force_function = std::move(value);
     force_type = ForceType::Function;
     return *this;
 }
 
-Schemer SchemerBuilder::build() const {
-    if (dt <= 0.0)
+Schemer SchemerBuilder::build() {
+    if (solving.dt <= 0.0)
         throw std::invalid_argument("dt must be positive");
 
-    if (grid_size <= 0)
+    if (solving.grid_points <= 0)
         throw std::invalid_argument("I must be positive");
 
-    if (length <= 0.0)
+    if (physics.length <= 0.0)
         throw std::invalid_argument("length must be positive");
 
-    if (alpha <= 0.0 || alpha > 2.0)
+    if (physics.alpha <= 0.0 || physics.alpha > 2.0)
         throw std::invalid_argument("alpha must be in (0, 2]");
 
-    if (theta < 0.0 || theta > 1.0)
+    if (solving.theta < 0.0 || solving.theta > 1.0)
         throw std::invalid_argument("theta must be in [0, 1]");
 
-    if (std::abs(beta) > 1.0)
+    if (std::abs(physics.beta) > 1.0)
         throw std::invalid_argument("beta must be in [-1, 1]");
 
-    const double dx = length / grid_size;
+    const double dx = physics.length / solving.grid_points;
     Eigen::Index starting_index;
 
     Eigen::VectorXd starting_values;
     switch (initialization_type) {
-        case InitialType::Middle:
-            starting_index = grid_size / 2;
-            starting_values = Eigen::VectorXd::Zero(grid_size+1);
-            starting_values(starting_index) = static_cast<double>(grid_size);
+        case InitialType::Middle: {
+            starting_index = solving.grid_points / 2;
+            starting_values = Eigen::VectorXd::Zero(solving.grid_points+1);
+            starting_values(starting_index) = static_cast<double>(solving.grid_points);
             break;
-        case InitialType::Dirac:
-            if (zero_index < 0 || zero_index > grid_size)
+        }
+        case InitialType::Dirac: {
+            if (zero_index < 0 || zero_index > solving.grid_points)
                 throw std::invalid_argument("initial_index must be in [0, I]");
             starting_index = zero_index;
-            starting_values = Eigen::VectorXd::Zero(grid_size+1);
-            starting_values(zero_index) = static_cast<double>(grid_size);
+            starting_values = Eigen::VectorXd::Zero(solving.grid_points+1);
+            starting_values(zero_index) = static_cast<double>(solving.grid_points);
             break;
-        case InitialType::Vector:
-            if (initial_vector.size() != grid_size + 1)
+        }
+        case InitialType::Vector: {
+            if (initial_vector.size() != solving.grid_points + 1)
                 throw std::invalid_argument("initial values must have size I+1");
-            starting_index = grid_size / 2;
+            if (zero_index < 0 || zero_index > solving.grid_points)
+                throw std::invalid_argument("initial_index must be in [0, I]");
+            // if (zero_index < 0)
+            //     starting_index = solving.grid_points/ 2;
+            starting_index = zero_index;
             starting_values = initial_vector;
             break;
+        }
         default:
             throw std::logic_error("Unhandled InitialType enum value");
     }
 
-    std::vector<double> force_values;
     switch (force_type) {
         case ForceType::Drift:
-            force_values.assign(grid_size + 1, 0.0);
+            // force_values.assign(grid_size + 1, 0.0);
             break;
-        case ForceType::Function:
+        case ForceType::Function: {
             if (force_function == nullptr)
                 throw std::invalid_argument("force function not set");
-
-            force_values.reserve(grid_size + 1);
-            for (Eigen::Index i = 0; i <= grid_size; i++) {
+            std::vector<double> force_values;
+            force_values.reserve(solving.grid_points + 1);
+            for (Eigen::Index i = 0; i <= solving.grid_points; i++) {
                 const double position = dx * (i - starting_index);
                 force_values.push_back(force_function(position));
             }
+            physics.force_mode = std::move(force_values);
             break;
-        case ForceType::Vector:
-            if (force_vector.size() != grid_size + 1)
+        }
+        case ForceType::Vector: {
+            if (force_vector.size() != solving.grid_points + 1)
                 throw std::invalid_argument("force vector must have size I+1");
-            force_values = force_vector;
+            physics.force_mode = std::move(force_vector);
             break;
+        }
         default:
             throw std::logic_error("Unhandled ForceType enum value");
     }
 
-    return {
-        alpha,
-        beta,
-        sigma,
-        dt,
-        grid_size,
-        length,
-        mi,
-        theta,
-        verbose,
-        std::move(starting_values),
-        std::move(force_values)
-    };
+
+    return {physics, solving, starting_values, verbose};
 }

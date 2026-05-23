@@ -3,15 +3,16 @@
 #include <ostream>
 #include <fstream>
 #include <Eigen/Dense>
+#include <utility>
 
-Schemer::Schemer(double alpha, double beta, double K, double dt, Eigen::Index I, double length, double mi,
-                 double theta, int verbose, Eigen::VectorXd initial_values, std::vector<double> force) : alpha(alpha), beta(beta), K(K), dt(dt), I(I), length(length),
-                                              theta(theta), verbose(verbose), mi(mi), initial_values(std::move(initial_values)), force(std::move(force)) {
+Schemer::Schemer(PhysicsParams physics, SolverParams solving, Eigen::VectorXd initial_values, const int verbose)
+    : physics(std::move(physics)), solving(std::move(solving)), verbose(verbose), initial_values(std::move(initial_values)) {
+
     initialize_params();
     initialize_matrices();
-
     reset_simulation();
 }
+
 
 void Schemer::reset_simulation() {
     current = initial_values;
@@ -28,15 +29,23 @@ void Schemer::run(const int steps, const int save_every, std::ostream* os) {
     const int log_interval = std::max(1, steps / 20);
 
     for (int h = 0; h < steps; h++) {
-        current = step_matrix * current;
         if (verbose > 0 && h % log_interval == 0) {
-            std::cout << "Progress: " << (100.0 * h / steps) << "%\n";
+            std::cout << "\rProgress: " << (100.0 * h / steps) << "%" << std::flush;
         }
         if (save_every > 0 && h % save_every == 0) {
             for (Eigen::Index i = 0; i < current.size(); i++)
                 *os << current(i) << ";";
             *os << std::endl;
         }
+        current = step_matrix * current;
+    }
+    if (save_every > 0) {
+        for (Eigen::Index i = 0; i < current.size(); i++)
+            *os << current(i) << ";";
+        *os << std::endl;
+    }
+    if (verbose > 0) {
+        std::cout << "\rProgress: " << 100.0 << "%" << std::endl;
     }
 }
 
@@ -47,5 +56,6 @@ void Schemer::save_result(const std::string &filename) const {
     for (Eigen::Index i = 0; i < current.size(); i++)
         out_stream << current(i) << ";";
     out_stream << std::endl;
-    // std::cout << "Saved to " << path << std::endl;
+    if (verbose > 0)
+        std::cout << "Saved to " << path << std::endl;
 }

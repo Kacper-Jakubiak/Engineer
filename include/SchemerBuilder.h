@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Schemer.h"
+#include <functional>
 
 class SchemerBuilder {
 private:
@@ -14,25 +15,28 @@ private:
         Function,
         Vector
     };
-    double alpha = 0.0;
-    double length = 0.0;
-    long long int grid_size = 0;
 
-    double beta = 0.0;
-    double sigma = 1.0;
-    double mi = 0.0;
+    PhysicsParams physics = {
+        .alpha = 0,
+        .beta = 0,
+        .sigma = 1.0,
+        .length = 0.0,
+        .force_mode = 0.0
+    };
 
-    double dt = 0.01;
-    double theta = 0.5;
+    SolverParams solving = {
+        .dt = 0.01,
+        .grid_points = 0,
+        .theta = 0.5
+    };
 
     InitialType initialization_type = InitialType::Middle;
     Eigen::VectorXd initial_vector;
-    long long int zero_index = 0;
+    long long int zero_index = -1;
 
     ForceType force_type = ForceType::Drift;
-    double drift = 0.0;
+    std::function<double(double)> force_function;
     std::vector<double> force_vector;
-    double (*force_function)(double) = nullptr;
 
     int verbose = 0;
 
@@ -50,7 +54,7 @@ public:
     SchemerBuilder& set_initial_conditions(const std::vector<double> &value);
     SchemerBuilder& set_zero_point(long long int value);
     SchemerBuilder& set_force(const std::vector<double> &value);
-    SchemerBuilder& set_force(double (*value)(double));
+    SchemerBuilder& set_force(std::function<double(double)> value);
 
-    [[nodiscard]] Schemer build() const;
+    [[nodiscard]] Schemer build();
 };

@@ -1,35 +1,52 @@
 #pragma once
 #include <Eigen/Dense>
+#include <variant>
+
+struct PhysicsParams {
+    double alpha;
+    double beta;
+    double sigma;
+    double length;
+    std::variant<double, std::vector<double>> force_mode;
+};
+
+struct SolverParams {
+    double dt;
+    Eigen::Index grid_points;
+    double theta;
+};
 
 class Schemer {
 private:
+    enum class ForceType {
+        Force,
+        Drift
+    };
+
     enum class SchemeType {
         Subdiffusive,
         Superdiffusive,
         Cauchy
     };
 
-    const double alpha;
-    const double beta;
-    const double K;
-    const double dt;
-    const Eigen::Index I;
-    const double length;
-    const double theta;
+    PhysicsParams physics;
+    SolverParams solving;
     const int verbose;
-    const double mi;
-    Eigen::MatrixXd step_matrix;
     const Eigen::VectorXd initial_values;
-    const std::vector<double> force;
-    Eigen::VectorXd current;
 
+
+    Eigen::MatrixXd step_matrix;
+    Eigen::VectorXd current;
+    Eigen::Index size;
     double dx;
     double L;
     double R;
     double omega;
     double n;
-    double ni;
+    double mi;
+    std::vector<double> force;
     SchemeType state;
+    ForceType force_type;
 
     void initialize_params();
 
@@ -44,8 +61,7 @@ private:
     [[nodiscard]] Eigen::MatrixXd get_force() const;
 
 public:
-    Schemer(double alpha, double beta, double K,
-            double dt, Eigen::Index I, double length, double mi, double theta, int verbose, Eigen::VectorXd initial_values, std::vector<double> force);
+    Schemer(PhysicsParams physics, SolverParams solving, Eigen::VectorXd initial_values, int verbose);
 
     void reset_simulation();
     void run(int steps, int save_every = 0, std::ostream* os = nullptr);

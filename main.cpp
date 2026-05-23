@@ -34,7 +34,7 @@ int main(const int argc, char *argv[]) {
                 "\nmi " << mi << "\ntheta " << theta << "\nsteps " << steps << "\nverbose " << verbose << '\n';
 
     std::string filename;
-    cout << "Enter filename: ";
+    // cout << "Enter filename: ";
     // cin >> filename;
     std::ofstream out_stream(std::string(PROJECT_ROOT) + "/history.txt");
 
@@ -50,7 +50,7 @@ int main(const int argc, char *argv[]) {
             .set_theta(theta)
             .set_verbosity(verbose)
             .set_zero_point(I/2)
-            // .set_mi(10.0)
+            // .set_drift(10.0)
             .set_force([](double x){return -x;})
             .build();
     cout << "RUNNING..." << std::endl;
