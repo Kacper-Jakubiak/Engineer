@@ -4,12 +4,13 @@ project(Engineer)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Engineer main.cpp
-        Schemer/Schemer.cpp
         include/Schemer.h
+        Schemer/Schemer.cpp
         Schemer/Schemer_setup.cpp
         Schemer/Schemer_matrices.cpp
-        SchemerBuilder/SchemerBuilder.cpp
         include/SchemerBuilder.h
+        SchemerBuilder/SchemerBuilder_setters.cpp
+        SchemerBuilder/SchemerBuilder_build.cpp
 )
 
 include(FetchContent)
