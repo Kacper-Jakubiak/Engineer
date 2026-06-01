@@ -20,8 +20,9 @@ def function(k, sigma, alpha, beta, mi):
 
     return np.exp(first - middle * last)
 
+
 def alg(N, L, sigma, alpha, beta, mi):
-    k = 2*np.pi * np.fft.fftfreq(N, d=L / N)
+    k = 2 * np.pi * np.fft.fftfreq(N, d=L / N)
 
     g = function(k, sigma, alpha, beta, mi)
 
@@ -29,10 +30,11 @@ def alg(N, L, sigma, alpha, beta, mi):
     f = np.real(f)
 
     f = np.fft.fftshift(f)
-    x_plus = np.linspace(-L/2, L/2, N+1)#, endpoint=False)
+    x_plus = np.linspace(-L / 2, L / 2, N + 1)  # , endpoint=False)
     f_plus = np.append(f, f[0])
 
     return x_plus, f_plus
+
 
 def compare_distributions(calculated, theoretical):
     if theoretical.shape != calculated.shape:
@@ -40,7 +42,7 @@ def compare_distributions(calculated, theoretical):
     # theoretical = theoretical / np.sum(theoretical)
     # calculated = calculated / np.sum(calculated)
     mae = np.mean(np.abs(theoretical - calculated))
-    mse = np.mean((theoretical - calculated)**2)
+    mse = np.mean((theoretical - calculated) ** 2)
     kl_div = np.sum(rel_entr(calculated, theoretical))
     cdf_f = np.cumsum(theoretical)
     cdf_calc = np.cumsum(calculated)
@@ -49,7 +51,6 @@ def compare_distributions(calculated, theoretical):
     print(f"MSE: {mse:.6f}")
     print(f"KL Divergence: {kl_div:.6f}")
     print(f"KS Statistic: {ks_stat:.6f}")
-
 
 
 def main():

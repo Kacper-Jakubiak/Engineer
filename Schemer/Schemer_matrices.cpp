@@ -87,12 +87,12 @@ Eigen::MatrixXd Schemer::get_force() const {
     Eigen::MatrixXd V = Eigen::MatrixXd::Zero(size, size);
     for (Eigen::Index i = 0; i < size; i++) {
         if (i > 0) {
-            V(i, i) -= force[i-1];
-            V(i, i-1) -= force[i];
+            V(i, i) -= force[i - 1];
+            V(i, i - 1) -= force[i];
         }
         if (i < size - 1) {
-            V(i, i) += force[i+1];
-            V(i, i+1) += force[i];
+            V(i, i) += force[i + 1];
+            V(i, i + 1) += force[i];
         }
     }
     V *= solving.dt / (2 * dx);

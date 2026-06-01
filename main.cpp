@@ -30,7 +30,8 @@ int main(const int argc, char *argv[]) {
         } else alpha = std::stod(argv[10]);
     }
     if (verbose > 0)
-        std::cout << "I " << I << "\nalpha " << alpha << "\nlength " << length << "\nbeta " << beta << "\ndt " << dt << "\nK " << K <<
+        std::cout << "I " << I << "\nalpha " << alpha << "\nlength " << length << "\nbeta " << beta << "\ndt " << dt <<
+                "\nK " << K <<
                 "\nmi " << mi << "\ntheta " << theta << "\nsteps " << steps << "\nverbose " << verbose << '\n';
 
     std::string filename;

@@ -8,26 +8,25 @@
 #include <iomanip>
 
 Schemer::Schemer(PhysicsParams physics, SolverParams solving, FrontParams front, Eigen::VectorXd initial_values)
-    : physics(std::move(physics)), solving(std::move(solving)), front(std::move(front)), initial_values(std::move(initial_values)) {
-
+    : physics(std::move(physics)), solving(std::move(solving)), front(std::move(front)),
+      initial_values(std::move(initial_values)) {
     initialize_params();
     initialize_matrices();
     reset();
 }
 
-void Schemer::log(std::ostream* os, const double progress_percent)
-{
+void Schemer::log(std::ostream *os, const double progress_percent) {
     const auto now = std::chrono::system_clock::now();
     const auto time = std::chrono::system_clock::to_time_t(now);
 
     *os << '['
-        << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S")
-        << "] Progress: "
-        << progress_percent
-        << "%\n";
+            << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S")
+            << "] Progress: "
+            << progress_percent
+            << "%\n";
 }
 
-void Schemer::save_current_values(std::ostream* os) const {
+void Schemer::save_current_values(std::ostream *os) const {
     for (Eigen::Index i = 0; i < current_values.size(); i++)
         *os << current_values(i) << front.delimiter;
     *os << std::endl;
@@ -38,7 +37,7 @@ void Schemer::reset() {
     current_values = initial_values;
 }
 
-void Schemer::run(const int steps, const int save_every, std::ostream* os) {
+void Schemer::run(const int steps, const int save_every, std::ostream *os) {
     if (steps <= 0)
         throw std::invalid_argument("steps must be > 0");
     if (save_every < 0)
@@ -47,7 +46,7 @@ void Schemer::run(const int steps, const int save_every, std::ostream* os) {
         throw std::invalid_argument("stream is required");
 
     std::ofstream log_file(LOG_FILE_PATH.data());
-    const int log_interval = std::max(1,  static_cast<int>(steps * front.log_interval_percent / 100.0));
+    const int log_interval = std::max(1, static_cast<int>(steps * front.log_interval_percent / 100.0));
 
     for (int step = 0; step < steps; step++) {
         if (front.log_interval_percent > 0.0 && step % log_interval == 0)

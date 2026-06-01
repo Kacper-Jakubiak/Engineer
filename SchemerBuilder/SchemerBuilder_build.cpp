@@ -4,18 +4,15 @@
 #include <iomanip>
 #include <stdexcept>
 
-void SchemerBuilder::save_parameters() const
-{
+void SchemerBuilder::save_parameters() const {
     std::ofstream log_file(PARAMETER_LOG_FILE_PATH.data());
 
-    if (!log_file.is_open())
-    {
-        std::cerr << std::string("Failed to create") + PARAMETER_LOG_FILE_PATH.data();
+    if (!log_file.is_open()) {
+        std::cerr << "Failed to create " << PARAMETER_LOG_FILE_PATH.data() << "\n";
         return;
     }
 
     log_file << "# " << physics.alpha << std::endl;
-
 }
 
 void SchemerBuilder::validate_parameters() const {
@@ -36,41 +33,65 @@ void SchemerBuilder::validate_parameters() const {
     if (front.log_interval_percent < 0.0) throw std::invalid_argument("log interval percent must be non-negative");
 
 
-    if (solving.dt > 1.0) std::cerr << "[WARNING] dt > 1.0" << std::endl;
+    if (solving.dt > 1.0) std::cerr << "[WARNING] dt > 1.0\n" << std::endl;
 }
 
+Eigen::Index SchemerBuilder::compute_starting_index() const {
+    switch (zero_type) {
+        case ZeroType::Middle:
+            return solving.grid_points / 2;
 
-std::pair<Eigen::Index, Eigen::VectorXd> SchemerBuilder::compute_initial_state() const {
-    Eigen::Index starting_index = 0;
+        case ZeroType::Index:
+            if (zero_index < 0 || zero_index > solving.grid_points)
+                throw std::invalid_argument("initial_index must be in [0, I]");
+            return zero_index;
+
+        case ZeroType::Distance: {
+            if (zero_distance < 0.0 || zero_distance > physics.length)
+                throw std::invalid_argument("initial_distance must be in [0, length]");
+
+            const auto grid_points_double = static_cast<double>(solving.grid_points);
+            const double ideal_index = grid_points_double * zero_distance / physics.length;
+            const auto real_index = static_cast<Eigen::Index>(std::round(ideal_index));
+            const double actual_distance = static_cast<double>(real_index) * physics.length / grid_points_double;
+            const double distance_difference = zero_distance - actual_distance;
+
+            if (std::abs(distance_difference) > 1e-9) {
+                std::cerr << "[WARNING] Target distance " << zero_distance
+                        << " snapped to grid index " << real_index
+                        << " (discrepancy: " << distance_difference << ")\n";
+            }
+
+            if (real_index < 0 || real_index > solving.grid_points)
+                throw std::logic_error("Calculated grid index is outside the grid boundaries");
+
+            return real_index;
+        }
+
+        default:
+            throw std::logic_error("Unhandled ZeroType enum value");
+    }
+}
+
+Eigen::VectorXd SchemerBuilder::compute_initial_state(const Eigen::Index starting_index) const {
     Eigen::VectorXd starting_values = Eigen::VectorXd::Zero(solving.grid_points + 1);
 
     switch (initialization_type) {
-        case InitialType::Middle:
-            starting_index = solving.grid_points / 2;
-            starting_values(starting_index) = static_cast<double>(solving.grid_points);
-            break;
-
         case InitialType::Dirac:
-            if (zero_index < 0 || zero_index > solving.grid_points)
-                throw std::invalid_argument("initial_index must be in [0, I]");
-            starting_index = zero_index;
-            starting_values(zero_index) = static_cast<double>(solving.grid_points);
+            starting_values(starting_index) = static_cast<double>(solving.grid_points);
             break;
 
         case InitialType::Vector:
             if (initial_vector.size() != solving.grid_points + 1)
                 throw std::invalid_argument("initial values must have size I+1");
-            if (zero_index >= 0 && zero_index <= solving.grid_points)
-                starting_index = zero_index;
-            else
-                starting_index =  (solving.grid_points / 2);
             starting_values = initial_vector;
             break;
 
         default:
             throw std::logic_error("Unhandled InitialType enum value");
     }
-    return {starting_index, starting_values};
+
+    return starting_values;
 }
 
 
@@ -87,7 +108,7 @@ std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index star
 
             force_values.reserve(solving.grid_points + 1);
             for (Eigen::Index i = 0; i <= solving.grid_points; ++i) {
-                const double position = dx * (i - starting_index);
+                const double position = dx * static_cast<double>(i - starting_index);
                 force_values.push_back(force_function(position));
             }
             break;
@@ -107,13 +128,14 @@ std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index star
 Schemer SchemerBuilder::build() const {
     validate_parameters();
 
-    const double dx = physics.length / solving.grid_points;
-    auto [starting_index, starting_values] = compute_initial_state();
+    const Eigen::Index starting_index = compute_starting_index();
+    auto starting_values = compute_initial_state(starting_index);
 
     PhysicsParams localized_physics = this->physics;
 
     if (force_type != ForceType::Drift) {
-        localized_physics.force_mode = compute_force_values(starting_index, dx);
+        localized_physics.force_mode = compute_force_values(starting_index,
+            physics.length / static_cast<double>(solving.grid_points));
     }
 
     save_parameters();
