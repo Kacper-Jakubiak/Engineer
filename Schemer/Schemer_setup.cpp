@@ -1,19 +1,19 @@
 #include "../include/Schemer.h"
 
 void Schemer::initialize_params() {
-    const double alpha = physics.alpha;
+    const double alpha = params.alpha;
 
-    dx = physics.length / static_cast<double>(solving.grid_points);
+    dx = params.length / static_cast<double>(params.grid_points);
     n = std::ceil(alpha);
-    size = solving.grid_points + 1;
+    size = params.grid_points + 1;
 
-    if (std::holds_alternative<double>(physics.force_mode)) {
-        const double mi_temp = std::get<double>(physics.force_mode);
+    if (std::holds_alternative<double>(params.force_mode)) {
+        const double mi_temp = std::get<double>(params.force_mode);
         mi = mi_temp;
         force_type = ForceType::Drift;
     }
     else {
-        auto& force_temp = std::get<std::vector<double>>(physics.force_mode);
+        auto& force_temp = std::get<std::vector<double>>(params.force_mode);
         force = std::move(force_temp);
         force_type = ForceType::Force;
     }
@@ -27,14 +27,14 @@ void Schemer::initialize_params() {
         state = SchemeType::Superdiffusive;
 
     if (state == SchemeType::Cauchy) {
-        omega = physics.sigma * solving.dt / (dx * std::numbers::pi);
+        omega = params.sigma * params.dt / (dx * std::numbers::pi);
         L = 0.0;
         R = 0.0;
     } else {
         const double denominator = 2.0 * std::cos(std::numbers::pi * alpha / 2.0);
-        L = -(1.0 + physics.beta) / denominator;
-        R = -(1.0 - physics.beta) / denominator;
-        omega = physics.sigma * solving.dt / (std::tgamma(n + 1 - alpha) * pow(dx, alpha));
+        L = -(1.0 + params.beta) / denominator;
+        R = -(1.0 - params.beta) / denominator;
+        omega = params.sigma * params.dt / (std::tgamma(n + 1 - alpha) * pow(dx, alpha));
     }
 }
 
@@ -60,8 +60,8 @@ void Schemer::initialize_matrices() {
 
     const Eigen::MatrixXd id = Eigen::MatrixXd::Identity(size, size);
 
-    const Eigen::MatrixXd Lhs = id + solving.theta * (force_matrix + diffusion_matrix);
-    const Eigen::MatrixXd Rhs = id - (1 - solving.theta) * (force_matrix + diffusion_matrix);
+    const Eigen::MatrixXd Lhs = id + params.theta * (force_matrix + diffusion_matrix);
+    const Eigen::MatrixXd Rhs = id - (1 - params.theta) * (force_matrix + diffusion_matrix);
 
     const Eigen::PartialPivLU<Eigen::MatrixXd> solver(Lhs);
     step_matrix = solver.solve(Rhs);

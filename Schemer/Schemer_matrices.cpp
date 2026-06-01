@@ -3,7 +3,7 @@
 std::vector<double> Schemer::get_lambdas() const {
     std::vector<double> result(size + 2);
     for (int i = 1; i < size + 2; i++) {
-        result[i] = pow(i, n - physics.alpha) - pow(i - 1, n - physics.alpha);
+        result[i] = pow(i, n - params.alpha) - pow(i - 1, n - params.alpha);
     }
 
     return result;
@@ -56,7 +56,8 @@ Eigen::MatrixXd Schemer::get_diffusion_M3() const {
     M.diagonal().setConstant(2.0 * omega);
 
     for (Eigen::Index i = 1; i < size; i++) {
-        double value = 1.0 / (2.0 * i + 1.0) - 1.0 / (2.0 * (i - 1) + 1.0);
+        const auto double_i = static_cast<double>(i);
+        double value = 1.0 / (2.0 * double_i + 1.0) - 1.0 / (2.0 * (double_i - 1) + 1.0);
         value *= omega;
         M.diagonal(-i).setConstant(value);
         M.diagonal(i).setConstant(value);
@@ -76,7 +77,7 @@ Eigen::MatrixXd Schemer::get_drift() const {
             V(i, i - 2) = 1.0;
     }
 
-    const double ni = mi * solving.dt / (2.0 * dx);
+    const double ni = mi * params.dt / (2.0 * dx);
 
     if (mi < 0)
         return -1.0 * ni * V.transpose();
@@ -95,6 +96,6 @@ Eigen::MatrixXd Schemer::get_force() const {
             V(i, i + 1) += force[i];
         }
     }
-    V *= solving.dt / (2 * dx);
+    V *= params.dt / (2 * dx);
     return V;
 }

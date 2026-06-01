@@ -2,21 +2,17 @@
 #include <Eigen/Dense>
 #include <variant>
 
-struct PhysicsParams {
+struct Params {
     double alpha;
     double beta;
     double sigma;
     double length;
     std::variant<double, std::vector<double> > force_mode;
-};
 
-struct SolverParams {
     double dt;
     Eigen::Index grid_points;
     double theta;
-};
 
-struct FrontParams {
     std::string delimiter;
     double log_interval_percent;
     int verbose;
@@ -37,9 +33,7 @@ private:
         Cauchy
     };
 
-    PhysicsParams physics;
-    SolverParams solving;
-    FrontParams front;
+    Params params;
     const Eigen::VectorXd initial_values;
 
 
@@ -56,9 +50,11 @@ private:
     SchemeType state;
     ForceType force_type;
 
-    static void log(std::ostream *os, double progress_percent);
+    static void log(std::ostream &os, double progress_percent);
 
-    void save_current_values(std::ostream *os) const;
+    void save_parameters(std::ostream &os) const;
+
+    void save_current_values(std::ostream &os) const;
 
     void initialize_params();
 
@@ -77,7 +73,7 @@ private:
     [[nodiscard]] Eigen::MatrixXd get_force() const;
 
 public:
-    Schemer(PhysicsParams physics, SolverParams solving, FrontParams front, Eigen::VectorXd initial_values);
+    Schemer(Params params, Eigen::VectorXd initial_values);
 
     void reset();
 
