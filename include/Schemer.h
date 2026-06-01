@@ -16,8 +16,16 @@ struct SolverParams {
     double theta;
 };
 
+struct FrontParams {
+    std::string delimiter;
+    double log_interval_percent;
+    int verbose;
+};
+
 class Schemer {
 private:
+    static constexpr std::string_view LOG_FILE_PATH = "progress.log";
+
     enum class ForceType {
         Force,
         Drift
@@ -31,12 +39,12 @@ private:
 
     PhysicsParams physics;
     SolverParams solving;
-    const int verbose;
+    FrontParams front;
     const Eigen::VectorXd initial_values;
 
 
     Eigen::MatrixXd step_matrix;
-    Eigen::VectorXd current;
+    Eigen::VectorXd current_values;
     Eigen::Index size;
     double dx;
     double L;
@@ -48,12 +56,13 @@ private:
     SchemeType state;
     ForceType force_type;
 
-    void initialize_params();
+    static void log(std::ostream* os, double progress_percent);
+    void save_current_values(std::ostream* os) const;
 
+    void initialize_params();
     void initialize_matrices();
 
     [[nodiscard]] std::vector<double> get_lambdas() const;
-
     [[nodiscard]] Eigen::MatrixXd get_diffusion_M1() const;
     [[nodiscard]] Eigen::MatrixXd get_diffusion_M2() const;
     [[nodiscard]] Eigen::MatrixXd get_diffusion_M3() const;
@@ -61,13 +70,12 @@ private:
     [[nodiscard]] Eigen::MatrixXd get_force() const;
 
 public:
-    Schemer(PhysicsParams physics, SolverParams solving, Eigen::VectorXd initial_values, int verbose);
+    Schemer(PhysicsParams physics, SolverParams solving, FrontParams front, Eigen::VectorXd initial_values);
 
-    void reset_simulation();
+    void reset();
     void run(int steps, int save_every = 0, std::ostream* os = nullptr);
-    void save_result(const std::string &filename) const;
+    void save_result(const std::string &filepath) const;
 
     Schemer(const Schemer &) = delete;
-
     Schemer &operator=(const Schemer &) = delete;
 };

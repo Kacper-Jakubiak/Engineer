@@ -1,4 +1,5 @@
 #include <iostream>
+#include <utility>
 
 #include "../include/SchemerBuilder.h"
 
@@ -22,7 +23,7 @@ SchemerBuilder& SchemerBuilder::set_dt(const double value) {
     return *this;
 }
 
-SchemerBuilder& SchemerBuilder::set_grid_size(const long long int value) {
+SchemerBuilder& SchemerBuilder::set_grid_points(const long long int value) {
     solving.grid_points = value;
     return *this;
 }
@@ -46,7 +47,17 @@ SchemerBuilder& SchemerBuilder::set_theta(const double value) {
 }
 
 SchemerBuilder& SchemerBuilder::set_verbosity(const int value) {
-    verbose = value;
+    front.verbose = value;
+    return *this;
+}
+
+SchemerBuilder& SchemerBuilder::set_delimiter(std::string value) {
+    front.delimiter = std::move(value);
+    return *this;
+}
+
+SchemerBuilder& SchemerBuilder::set_log_interval_percent(const int value) {
+    front.log_interval_percent = value;
     return *this;
 }
 

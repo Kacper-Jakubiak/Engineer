@@ -41,20 +41,21 @@ int main(const int argc, char *argv[]) {
     cout << "BUILDING..." << std::endl;
     Schemer simulator = SchemerBuilder()
             .set_alpha(alpha)
-            .set_beta(beta)
-            .set_sigma(K)
-            .set_dt(dt)
-            .set_grid_size(I)
-            .set_length(length)
-            .set_drift(mi)
-            .set_theta(theta)
-            .set_verbosity(verbose)
-            .set_zero_point(I/2)
+            // .set_beta(beta)
+            // .set_sigma(K)
+            // .set_dt(dt)
+            // .set_grid_points(I)
+            // .set_length(length)
+            // .set_drift(mi)
+            // .set_theta(theta)
+            // .set_verbosity(verbose)
+            // // .set_zero_point(I/2)
             // .set_drift(10.0)
-            .set_force([](double x){return -x;})
+            // .set_force([](double x){return -x;})
+            // .set_drift(0.0)
             .build();
     cout << "RUNNING..." << std::endl;
     simulator.run(steps, 1, &out_stream);
     cout << "FINISHED." << std::endl;
-    // simulator.save_result(filename + ".txt");
+    simulator.save_result(std::string(PROJECT_ROOT) + "/result.txt");
 }

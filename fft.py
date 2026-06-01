@@ -1,20 +1,24 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm, cauchy
+import numpy as np
 from scipy.special import rel_entr
+from scipy.stats import norm, cauchy
+
 from visualization import read_data
+
 
 def function(k, sigma, alpha, beta, mi):
     if alpha == 1:
-        half = -2/np.pi * np.log(np.abs(k))
+        theta = -2 / np.pi * np.log(np.abs(k))
     else:
-        half = np.tan(np.pi*alpha/2)
+        theta = np.tan(np.pi * alpha / 2)
 
     first = -1j * k * mi
 
-    middle = np.abs(sigma * k)**alpha
+    middle = np.abs(sigma ** (1.0 / alpha) * k) ** alpha
 
-    return np.exp(first - middle * (1 + 1j * beta * np.sign(k) * half))
+    last = 1 - -1j * beta * np.sign(k) * theta
+
+    return np.exp(first - middle * last)
 
 def alg(N, L, sigma, alpha, beta, mi):
     k = 2*np.pi * np.fft.fftfreq(N, d=L / N)
@@ -49,25 +53,26 @@ def compare_distributions(calculated, theoretical):
 
 
 def main():
-    filename = "K_1.00.txt"#result_1.90.txt"
+    # filename = "mi-2.txt"
+    filename = "result.txt"
     L = 40
-    K = 1.0
+    K = 5.0
+
+    alpha = 1.5
+    beta = 0.0
+    mi = 0.0
     dt = 0.001
     J = 1000
-    sigma = K * dt * J
-    beta = 0.0
-    alpha = 1.9
-    mi = 0.0
 
     data = read_data(filename)
     N = len(data[-1]) - 1
     print(f"{N = }")
 
-
     calculated = np.array(data[-1])
     calculated /= (N + 1)
 
-    x, f = alg(N, L, sigma, alpha, beta, mi)
+    time = J * dt
+    x, f = alg(N, L, K * time, alpha, beta, mi * time)
 
     print(np.sum(f))
     print(np.sum(calculated))
@@ -78,7 +83,7 @@ def main():
 
     # plt.plot(x, gaussian, label="Gaussian (SciPy)")
     # plt.plot(x, cauchy_dist, label="Cauchy (SciPy)")
-    plt.plot(x, f, label="Inverse FFT")  
+    plt.plot(x, f, label="Inverse FFT")
     plt.plot(x, calculated, label="Calculated")
     plt.legend()
     plt.show()

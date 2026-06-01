@@ -1,18 +1,42 @@
 #include "../include/SchemerBuilder.h"
 #include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <stdexcept>
+
+void SchemerBuilder::save_parameters() const
+{
+    std::ofstream log_file(PARAMETER_LOG_FILE_PATH.data());
+
+    if (!log_file.is_open())
+    {
+        std::cerr << std::string("Failed to create") + PARAMETER_LOG_FILE_PATH.data();
+        return;
+    }
+
+    log_file << "# " << physics.alpha << std::endl;
+
+}
 
 void SchemerBuilder::validate_parameters() const {
+    if (physics.alpha <= 0.0 || physics.alpha > 2.0) throw std::invalid_argument("alpha must be in (0, 2]");
+
+    if (std::abs(physics.beta) > 1.0) throw std::invalid_argument("beta must be in [-1, 1]");
+
+    if (physics.sigma < 0.0) throw std::invalid_argument("sigma must be non-negative");
+
+    if (physics.length <= 0.0) throw std::invalid_argument("length must be positive");
+
     if (solving.dt <= 0.0) throw std::invalid_argument("dt must be positive");
 
     if (solving.grid_points <= 0) throw std::invalid_argument("grid_points must be positive");
 
-    if (physics.length <= 0.0) throw std::invalid_argument("length must be positive");
-
-    if (physics.alpha <= 0.0 || physics.alpha > 2.0) throw std::invalid_argument("alpha must be in (0, 2]");
-
     if (solving.theta < 0.0 || solving.theta > 1.0) throw std::invalid_argument("theta must be in [0, 1]");
 
-    if (std::abs(physics.beta) > 1.0) throw std::invalid_argument("beta must be in [-1, 1]");
+    if (front.log_interval_percent < 0.0) throw std::invalid_argument("log interval percent must be non-negative");
+
+
+    if (solving.dt > 1.0) std::cerr << "[WARNING] dt > 1.0" << std::endl;
 }
 
 
@@ -80,7 +104,6 @@ std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index star
     return force_values;
 }
 
-
 Schemer SchemerBuilder::build() const {
     validate_parameters();
 
@@ -93,10 +116,12 @@ Schemer SchemerBuilder::build() const {
         localized_physics.force_mode = compute_force_values(starting_index, dx);
     }
 
+    save_parameters();
+
     return {
         std::move(localized_physics),
         solving,
+        front,
         std::move(starting_values),
-        verbose
     };
 }
