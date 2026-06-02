@@ -22,7 +22,7 @@ void Schemer::log(std::ostream &os, const double progress_percent) {
             << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S")
             << "] Progress: "
             << progress_percent
-            << "%\n";
+            << "%" << std::endl;
 }
 
 void Schemer::save_parameters(std::ostream &os) const {

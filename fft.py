@@ -68,7 +68,6 @@ def main():
 
     calculated = read_line(filename)
     histogram = read_line(histname)
-    histogram = [v * L for v in histogram]
 
     points = len(calculated)
     dx = L / points

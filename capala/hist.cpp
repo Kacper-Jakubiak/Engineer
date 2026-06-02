@@ -10,7 +10,8 @@
 std::vector<double> generate_histogram(const std::vector<double>& data, int num_bins, double min_range, double max_range) {
     std::vector<int> counts(num_bins, 0);
 
-    double bin_width = (max_range - min_range) / num_bins;
+    double length = max_range - min_range;
+    double bin_width = length / num_bins;
     int out_of_range = 0;
 
     for (double value : data) {
@@ -35,7 +36,7 @@ std::vector<double> generate_histogram(const std::vector<double>& data, int num_
 
     double normalization_factor = data.size() * bin_width;
     for (int i = 0; i < num_bins; ++i)
-        density[i] = counts[i] / normalization_factor;
+        density[i] = counts[i] * length / normalization_factor;
 
     return density;
 }
