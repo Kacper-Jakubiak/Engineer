@@ -5,9 +5,7 @@
 #include "alfaStabilny.h"
 #include "hist.h"
 
-double get_force(double x) {
-    return x - (x * x * x);
-}
+#include <functional>
 
 std::vector<double> generate_histogram(const std::vector<double>& data, int num_bins, double min_range, double max_range) {
     std::vector<int> counts(num_bins, 0);
@@ -42,7 +40,7 @@ std::vector<double> generate_histogram(const std::vector<double>& data, int num_
     return density;
 }
 
-std::vector<double> generate_positions(alfaStabilny& levyGenerator, int num_particles, double dt, int steps, double noise) {
+std::vector<double> generate_positions(alfaStabilny& levyGenerator, int num_particles, double dt, int steps, double noise, const std::function<double(double)>& force) {
     vector<double> positions;
     positions.reserve(num_particles);
 
@@ -57,7 +55,7 @@ std::vector<double> generate_positions(alfaStabilny& levyGenerator, int num_part
         double x = 0.0;
 
         for (int step = 0; step < steps; ++step) {
-            double drift = get_force(x) * dt;
+            double drift = force(x) * dt;
 
             double jump = levyGenerator.losuj() * noise;
 
@@ -71,26 +69,17 @@ std::vector<double> generate_positions(alfaStabilny& levyGenerator, int num_part
 }
 
 
-vector<double> get_histogram() {
+std::vector<double> get_histogram(double alpha, double beta, double sigma, double length, int num_intervals, double dt, int steps, const std::function<double(double)>& force) {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    double alpha = 1.9;
-    double beta = 0.0;
-    double mi = 0.0;
-    double sigma = 1.0;
-    double length = 40.0;
-    int num_intervals = 1000;
-
-    alfaStabilny levyGenerator(alpha, beta, mi, sigma, &gen);
+    alfaStabilny levyGenerator(alpha, beta, 0.0, sigma, &gen);
 
     int num_particles = 500000;
-    double dt = 0.01;
-    int steps = 100;
     double noise_scaling = std::pow(dt, 1.0 / alpha);
 
 
-    auto positions = generate_positions(levyGenerator, num_particles, dt, steps, noise_scaling);
+    auto positions = generate_positions(levyGenerator, num_particles, dt, steps, noise_scaling, force);
     auto histogram = generate_histogram(positions, num_intervals + 1, -length/2, length/2);
 
     return histogram;

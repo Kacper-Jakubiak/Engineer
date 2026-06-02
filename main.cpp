@@ -7,8 +7,8 @@
 #include "capala/hist.h"
 using namespace std;
 
-double force(const double x) {
-    return x - (x * x * x);
+double get_force(double x) {
+    return -4.0 * std::sin(x);
 }
 
 
@@ -57,14 +57,16 @@ int main(const int argc, char *argv[]) {
             .set_drift(mi)
             .set_theta(theta)
             .set_verbosity(verbose)
-            .set_force(force)
+            .set_force(get_force)
             .build();
     cout << "RUNNING..." << std::endl;
-    simulator.run(steps, 10, &out_stream);
+    simulator.run(steps);//, 10, &out_stream);
     cout << "FINISHED." << std::endl;
     simulator.save_result(std::string(PROJECT_ROOT) + "/result.txt");
 
-    auto histogram = get_histogram();
+
+    int less_steps = steps / 10;
+    auto histogram = get_histogram(alpha, beta, sigma, length, num_intervals, (dt * steps) / less_steps, less_steps, get_force);
     std::ofstream hist_stream(std::string(PROJECT_ROOT) + "/histogram.txt");
     for (double v : histogram) {
         hist_stream << v << ";";

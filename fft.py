@@ -56,9 +56,9 @@ def compare_distributions(distribution1, distribution2):
 def main():
     filename = "result.txt"
     histname = "histogram.txt"
-    L = 40.0
-    sigma = 1.0
+    L = 80.0
 
+    sigma = 1.0
     alpha = 1.9
     beta = 0.0
     mi = 0.0
@@ -73,14 +73,14 @@ def main():
     points = len(calculated)
     dx = L / points
 
-    f = alg(points, L, sigma * time, alpha, beta, mi * time)
-    f = [f_i * points for f_i in f]
+    # f = alg(points, L, sigma * time, alpha, beta, mi * time)
+    # f = [f_i * points for f_i in f]
 
     # print(f"{len(calculated) = }")
     # print(f"{len(histogram) = }")
     print(f"{sum(calculated) = }")
     print(f"{sum(histogram) = }")
-    print(f"{sum(f) = }")
+    # print(f"{sum(f) = }")
 
 
 
