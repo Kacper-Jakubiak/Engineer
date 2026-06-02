@@ -11,6 +11,10 @@ add_executable(Engineer main.cpp
         include/SchemerBuilder.h
         SchemerBuilder/SchemerBuilder_setters.cpp
         SchemerBuilder/SchemerBuilder_build.cpp
+#        trajectories_main.cpp
+        capala/alfaStabilny.h
+        capala/alfaStabilny.cpp
+        capala/hist.h
 )
 
 include(FetchContent)
