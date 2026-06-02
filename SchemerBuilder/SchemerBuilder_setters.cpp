@@ -58,8 +58,8 @@ SchemerBuilder &SchemerBuilder::set_dt(const double value) {
     return *this;
 }
 
-SchemerBuilder &SchemerBuilder::set_grid_points(const long long int value) {
-    params.grid_points = value;
+SchemerBuilder &SchemerBuilder::set_num_intervals(const long long int value) {
+    params.num_intervals = value;
     return *this;
 }
 

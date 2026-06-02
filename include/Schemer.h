@@ -10,7 +10,7 @@ struct Params {
     std::variant<double, std::vector<double> > force_mode;
 
     double dt;
-    Eigen::Index grid_points;
+    Eigen::Index num_intervals;
     double theta;
 
     std::string delimiter;

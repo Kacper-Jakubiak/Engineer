@@ -34,7 +34,7 @@ private:
         .force_mode = 0.0,
 
         .dt = 0.001,
-        .grid_points = 1000,
+        .num_intervals = 1000,
         .theta = 0.5,
 
         .delimiter = "\t",
@@ -78,7 +78,7 @@ public:
 
     SchemerBuilder &set_dt(double value);
 
-    SchemerBuilder &set_grid_points(Eigen::Index value);
+    SchemerBuilder &set_num_intervals(Eigen::Index value);
 
     SchemerBuilder &set_theta(double value);
 

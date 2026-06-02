@@ -3,9 +3,9 @@
 void Schemer::initialize_params() {
     const double alpha = params.alpha;
 
-    dx = params.length / static_cast<double>(params.grid_points);
+    dx = params.length / static_cast<double>(params.num_intervals);
     n = std::ceil(alpha);
-    size = params.grid_points + 1;
+    size = params.num_intervals + 1;
 
     if (std::holds_alternative<double>(params.force_mode)) {
         const double mi_temp = std::get<double>(params.force_mode);

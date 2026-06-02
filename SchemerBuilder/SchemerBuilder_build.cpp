@@ -14,7 +14,7 @@ void SchemerBuilder::validate_parameters() const {
 
     if (params.dt <= 0.0) throw std::invalid_argument("dt must be positive");
 
-    if (params.grid_points <= 0) throw std::invalid_argument("grid_points must be positive");
+    if (params.num_intervals <= 0) throw std::invalid_argument("grid_points must be positive");
 
     if (params.theta < 0.0 || params.theta > 1.0) throw std::invalid_argument("theta must be in [0, 1]");
 
@@ -27,10 +27,10 @@ void SchemerBuilder::validate_parameters() const {
 Eigen::Index SchemerBuilder::compute_starting_index() const {
     switch (zero_type) {
         case ZeroType::Middle:
-            return params.grid_points / 2;
+            return params.num_intervals / 2;
 
         case ZeroType::Index:
-            if (zero_index < 0 || zero_index > params.grid_points)
+            if (zero_index < 0 || zero_index > params.num_intervals)
                 throw std::invalid_argument("initial_index must be in [0, I]");
             return zero_index;
 
@@ -38,7 +38,7 @@ Eigen::Index SchemerBuilder::compute_starting_index() const {
             if (zero_distance < 0.0 || zero_distance > params.length)
                 throw std::invalid_argument("initial_distance must be in [0, length]");
 
-            const auto grid_points_double = static_cast<double>(params.grid_points);
+            const auto grid_points_double = static_cast<double>(params.num_intervals);
             const double ideal_index = grid_points_double * zero_distance / params.length;
             const auto real_index = static_cast<Eigen::Index>(std::round(ideal_index));
             const double actual_distance = static_cast<double>(real_index) * params.length / grid_points_double;
@@ -50,7 +50,7 @@ Eigen::Index SchemerBuilder::compute_starting_index() const {
                         << " (discrepancy: " << distance_difference << ")\n";
             }
 
-            if (real_index < 0 || real_index > params.grid_points)
+            if (real_index < 0 || real_index > params.num_intervals)
                 throw std::logic_error("Calculated grid index is outside the grid boundaries");
 
             return real_index;
@@ -62,15 +62,15 @@ Eigen::Index SchemerBuilder::compute_starting_index() const {
 }
 
 Eigen::VectorXd SchemerBuilder::compute_initial_state(const Eigen::Index starting_index) const {
-    Eigen::VectorXd starting_values = Eigen::VectorXd::Zero(params.grid_points + 1);
+    Eigen::VectorXd starting_values = Eigen::VectorXd::Zero(params.num_intervals + 1);
 
     switch (initialization_type) {
         case InitialType::Dirac:
-            starting_values(starting_index) = static_cast<double>(params.grid_points);
+            starting_values(starting_index) = static_cast<double>(params.num_intervals);
             break;
 
         case InitialType::Vector:
-            if (initial_vector.size() != params.grid_points + 1)
+            if (initial_vector.size() != params.num_intervals + 1)
                 throw std::invalid_argument("initial values must have size I+1");
             starting_values = initial_vector;
             break;
@@ -94,15 +94,15 @@ std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index star
             if (!force_function)
                 throw std::invalid_argument("force function not set");
 
-            force_values.reserve(params.grid_points + 1);
-            for (Eigen::Index i = 0; i <= params.grid_points; ++i) {
+            force_values.reserve(params.num_intervals + 1);
+            for (Eigen::Index i = 0; i <= params.num_intervals; ++i) {
                 const double position = dx * static_cast<double>(i - starting_index);
                 force_values.push_back(force_function(position));
             }
             break;
         }
         case ForceType::Vector:
-            if (force_vector.size() != params.grid_points + 1)
+            if (force_vector.size() != params.num_intervals + 1)
                 throw std::invalid_argument("force vector must have size I+1");
             force_values = force_vector;
             break;
@@ -123,7 +123,7 @@ Schemer SchemerBuilder::build() const {
 
     if (force_type != ForceType::Drift) {
         localized_params.force_mode = compute_force_values(starting_index,
-                                                            params.length / static_cast<double>(params.grid_points));
+                                                            params.length / static_cast<double>(params.num_intervals));
     }
 
 
