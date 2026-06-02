@@ -20,6 +20,8 @@ void SchemerBuilder::validate_parameters() const {
 
     if (params.log_interval_percent < 0.0) throw std::invalid_argument("log interval percent must be non-negative");
 
+    if (std::abs(params.alpha-1) < Schemer::ALPHA_EPSILON && params.beta != 0.0) throw std::invalid_argument("beta != 0.0 not supported for alpha = 1.0");
+
 
     if (params.dt > 1.0) std::cerr << "[WARNING] dt > 1.0\n" << std::endl;
 }
@@ -117,7 +119,7 @@ Schemer SchemerBuilder::build() const {
     validate_parameters();
 
     const Eigen::Index starting_index = compute_starting_index();
-    auto starting_values = compute_initial_state(starting_index);
+    const auto starting_values = compute_initial_state(starting_index);
 
     Params localized_params = this->params;
 
@@ -126,9 +128,26 @@ Schemer SchemerBuilder::build() const {
                                                             params.length / static_cast<double>(params.num_intervals));
     }
 
+    localized_params.initial_values = starting_values;
 
-    return {
-        std::move(localized_params),
-        std::move(starting_values),
-    };
+
+    return Schemer(std::move(localized_params));
+}
+
+Params SchemerBuilder::build_params() const {
+    validate_parameters();
+
+    const Eigen::Index starting_index = compute_starting_index();
+    const auto starting_values = compute_initial_state(starting_index);
+
+    Params localized_params = this->params;
+
+    if (force_type != ForceType::Drift) {
+        localized_params.force_mode = compute_force_values(starting_index,
+                                                            params.length / static_cast<double>(params.num_intervals));
+    }
+
+    localized_params.initial_values = starting_values;
+
+    return localized_params;
 }

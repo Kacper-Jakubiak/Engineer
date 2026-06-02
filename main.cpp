@@ -8,7 +8,7 @@
 using namespace std;
 
 double get_force(double x) {
-    return -4.0 * std::sin(x);
+    return -4.0 * std::sin(x) - x / 500.0;
 }
 
 
@@ -58,18 +58,22 @@ int main(const int argc, char *argv[]) {
             .set_theta(theta)
             .set_verbosity(verbose)
             .set_force(get_force)
+            .set_log_interval_percent(1)
             .build();
     cout << "RUNNING..." << std::endl;
     simulator.run(steps);//, 10, &out_stream);
     cout << "FINISHED." << std::endl;
     simulator.save_result(std::string(PROJECT_ROOT) + "/result.txt");
 
+    out_stream.close();
 
-    int less_steps = steps / 10;
+
+    int less_steps = steps / 20;
     auto histogram = get_histogram(alpha, beta, sigma, length, num_intervals, (dt * steps) / less_steps, less_steps, get_force);
     std::ofstream hist_stream(std::string(PROJECT_ROOT) + "/histogram.txt");
     for (double v : histogram) {
-        hist_stream << v << ";";
+        hist_stream << v << "\t";
     }
     hist_stream << std::endl;
+    hist_stream.close();
 }

@@ -8,18 +8,14 @@ void Schemer::initialize_params() {
     size = params.num_intervals + 1;
 
     if (std::holds_alternative<double>(params.force_mode)) {
-        const double mi_temp = std::get<double>(params.force_mode);
-        mi = mi_temp;
         force_type = ForceType::Drift;
     }
     else {
-        auto& force_temp = std::get<std::vector<double>>(params.force_mode);
-        force = std::move(force_temp);
         force_type = ForceType::Force;
     }
 
 
-    if (std::abs(alpha - 1.0) < 1e-7)
+    if (std::abs(alpha - 1.0) < ALPHA_EPSILON)
         state = SchemeType::Cauchy;
     else if (alpha < 1.0)
         state = SchemeType::Subdiffusive;

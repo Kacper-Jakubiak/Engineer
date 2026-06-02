@@ -7,8 +7,7 @@
 #include <chrono>
 #include <iomanip>
 
-Schemer::Schemer(Params params, Eigen::VectorXd initial_values)
-    : params(std::move(params)), initial_values(std::move(initial_values)) {
+Schemer::Schemer(Params params): params(std::move(params)) {
     initialize_params();
     initialize_matrices();
     reset();
@@ -26,7 +25,7 @@ void Schemer::log(std::ostream &os, const double progress_percent) {
 }
 
 void Schemer::save_parameters(std::ostream &os) const {
-    os << params.alpha << std::endl; //TODO
+    os << '#' << params.alpha << std::endl; //TODO
 }
 
 void Schemer::save_current_values(std::ostream &os) const {
@@ -37,7 +36,7 @@ void Schemer::save_current_values(std::ostream &os) const {
 
 
 void Schemer::reset() {
-    current_values = initial_values;
+    current_values = params.initial_values;
 }
 
 void Schemer::run(const int steps, const int save_every, std::ostream *os) {
@@ -72,8 +71,9 @@ void Schemer::run(const int steps, const int save_every, std::ostream *os) {
 void Schemer::save_result(const std::string &filepath) const {
     std::ofstream out_stream(filepath);
     for (Eigen::Index i = 0; i < current_values.size(); i++)
-        out_stream << current_values(i) << ";";
+        out_stream << current_values(i) << params.delimiter;
     out_stream << std::endl;
+    out_stream.close();
     if (params.verbose > 0)
         std::cout << "Saved to " << filepath << std::endl;
 }

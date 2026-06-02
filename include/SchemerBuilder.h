@@ -40,6 +40,7 @@ private:
         .delimiter = "\t",
         .log_interval_percent = 5.0,
         .verbose = 0,
+
     };
 
     InitialType initialization_type = InitialType::Dirac;
@@ -99,4 +100,6 @@ public:
     SchemerBuilder &set_zero_middle();
 
     [[nodiscard]] Schemer build() const;
+
+    [[nodiscard]] Params build_params() const;
 };

@@ -16,6 +16,8 @@ struct Params {
     std::string delimiter;
     double log_interval_percent;
     int verbose;
+
+    Eigen::VectorXd initial_values;
 };
 
 class Schemer {
@@ -33,9 +35,7 @@ private:
         Cauchy
     };
 
-    Params params;
-    const Eigen::VectorXd initial_values;
-
+    const Params params;
 
     Eigen::MatrixXd step_matrix;
     Eigen::VectorXd current_values;
@@ -45,8 +45,6 @@ private:
     double R;
     double omega;
     double n;
-    double mi;
-    std::vector<double> force;
     SchemeType state;
     ForceType force_type;
 
@@ -73,7 +71,9 @@ private:
     [[nodiscard]] Eigen::MatrixXd get_force() const;
 
 public:
-    Schemer(Params params, Eigen::VectorXd initial_values);
+    static constexpr double ALPHA_EPSILON = 1e-8;
+
+    explicit Schemer(Params params);
 
     void reset();
 

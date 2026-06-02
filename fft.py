@@ -4,7 +4,7 @@ import numpy as np
 def read_line(filename) -> list[float]:
     with open(filename, 'r') as f:
         for line in f:
-            values = [float(x) for x in line.strip().split(';') if x]
+            values = [float(x) for x in line.strip().split('\t') if x]
             break
     return values
 
@@ -56,7 +56,7 @@ def compare_distributions(distribution1, distribution2):
 def main():
     filename = "result.txt"
     histname = "histogram.txt"
-    L = 80.0
+    L = 200.0
 
     sigma = 1.0
     alpha = 1.9

@@ -77,6 +77,7 @@ Eigen::MatrixXd Schemer::get_drift() const {
             V(i, i - 2) = 1.0;
     }
 
+    const double mi = std::get<double>(params.force_mode);
     const double ni = mi * params.dt / (2.0 * dx);
 
     if (mi < 0)
@@ -86,6 +87,8 @@ Eigen::MatrixXd Schemer::get_drift() const {
 
 Eigen::MatrixXd Schemer::get_force() const {
     Eigen::MatrixXd V = Eigen::MatrixXd::Zero(size, size);
+    const auto &force = std::get<std::vector<double>>(params.force_mode);
+
     for (Eigen::Index i = 0; i < size; i++) {
         if (i > 0) {
             V(i, i) -= force[i - 1];
