@@ -43,15 +43,34 @@ void Schemer::save_parameters(std::ostream &os) const {
         os << params.initial_values(i) << params.delimiter;
     os << '\n';
 
-    if (const double* force_mode_1 = std::get_if<double>(&params.force_mode)) {
-        os << '#' << "force_mode: " << *force_mode_1 << '\n';
+    switch (force_type) {
+        case ForceType::Drift: {
+            const double mi = std::get<double>(params.force_mode);
+            os << '#' << "force_mode: " << mi << std::endl;
+            break;
+        }
+        case ForceType::Force: {
+            const auto &force_vector = std::get<std::vector<double>>(params.force_mode);
+            os << '#' << "force_mode: ";
+            for (const double force_value : force_vector)
+                os << force_value << params.delimiter;
+            os << std::endl;
+            break;
+        }
+        default:
+            throw std::runtime_error("Invalid Force Type");
     }
-    else if (const std::vector<double>* force_mode_2 = std::get_if<std::vector<double> >(&params.force_mode)) {
-        os << '#' << "force_mode: ";
-        for (size_t i = 0; i < (*force_mode_2).size(); i++)
-            os << (*force_mode_2)[i] << params.delimiter;
-        os << '\n';
-    }
+
+    // if (force_type == ForceType::Drift) {
+    //     const double mi = std::get<double>(params.force_mode);
+    //     os << '#' << "force_mode: " << mi << '\n';
+    // }
+    // else if (const std::vector<double>* force_mode_2 = std::get_if<std::vector<double> >(&params.force_mode)) {
+    //     os << '#' << "force_mode: ";
+    //     for (size_t i = 0; i < (*force_mode_2).size(); i++)
+    //         os << (*force_mode_2)[i] << params.delimiter;
+    //     os << '\n';
+    // }
 }
 
 void Schemer::save_current_values(std::ostream &os) const {

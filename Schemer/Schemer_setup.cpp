@@ -52,6 +52,9 @@ void Schemer::initialize_matrices() {
         case ForceType::Drift: force_matrix = get_drift();
             break;
         case ForceType::Force: force_matrix = get_force();
+            break;
+        default:
+            throw std::runtime_error("Invalid Force Type");
     }
 
     const Eigen::MatrixXd id = Eigen::MatrixXd::Identity(size, size);
