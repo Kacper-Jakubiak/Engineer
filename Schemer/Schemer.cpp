@@ -10,7 +10,7 @@
 Schemer::Schemer(Params params): params(std::move(params)) {
     initialize_params();
     initialize_matrices();
-    reset();
+    current_values = params.initial_values;
 }
 
 void Schemer::log(std::ostream &os, const double progress_percent) {
@@ -34,46 +34,55 @@ void Schemer::save_current_values(std::ostream &os) const {
     os << std::endl;
 }
 
-
 void Schemer::reset() {
     current_values = params.initial_values;
 }
 
-void Schemer::run(const int steps, const int save_every, std::ostream *os) {
-    if (steps <= 0)
-        throw std::invalid_argument("steps must be > 0");
+void Schemer::run(int steps, int save_every, std::ostream *history_stream) {
+    if (steps < 0)
+        throw std::invalid_argument("amount of steps cannot be negative");
     if (save_every < 0)
-        throw std::invalid_argument("save_every must be >= 0");
-    if (save_every > 0 && os == nullptr)
-        throw std::invalid_argument("stream is required");
+        throw std::invalid_argument("save_every cannot be negative");
 
-    std::ofstream log_stream(LOG_FILE_PATH.data());
+    if (save_every > 0 && history_stream == nullptr)
+        std::cerr << "[WARNING] history_stream not provided, history will not be saved";
+    const bool should_log_history = history_stream != nullptr && save_every > 0;
+
+    std::ofstream log_stream;
+    bool should_log_progress = params.log_interval_percent > 0;
+    if (should_log_progress) {
+        log_stream.open(LOG_FILE_PATH.data());
+        if (!log_stream) {
+            std::cerr << "[WARNING] Failed opening log file " + std::string(LOG_FILE_PATH) << "logs will not be saved";
+            should_log_progress = false;
+        }
+    }
     const int log_interval = std::max(1, static_cast<int>(steps * params.log_interval_percent / 100.0));
 
     for (int step = 0; step < steps; step++) {
-        if (params.log_interval_percent > 0.0 && step % log_interval == 0)
+        if (should_log_progress && step % log_interval == 0)
             log(log_stream, 100.0 * step / steps);
 
-        if (save_every > 0 && step % save_every == 0)
-            save_current_values(*os);
+        if (should_log_history && step % save_every == 0)
+            save_current_values(*history_stream);
 
         current_values = step_matrix * current_values;
     }
 
-    if (save_every > 0)
-        save_current_values(*os);
+    if (should_log_history)
+        save_current_values(*history_stream);
 
-    if (params.log_interval_percent > 0.0)
+    if (should_log_progress)
         log(log_stream, 100.0);
 }
 
 
 void Schemer::save_result(const std::string &filepath) const {
     std::ofstream out_stream(filepath);
-    for (Eigen::Index i = 0; i < current_values.size(); i++)
-        out_stream << current_values(i) << params.delimiter;
-    out_stream << std::endl;
-    out_stream.close();
+    if (!out_stream) {
+        throw std::runtime_error("Failed to open result file: " + filepath);
+    }
+    save_current_values(out_stream);
     if (params.verbose > 0)
         std::cout << "Saved to " << filepath << std::endl;
 }
