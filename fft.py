@@ -4,6 +4,8 @@ import numpy as np
 def read_line(filename) -> list[float]:
     with open(filename, 'r') as f:
         for line in f:
+            if line.startswith('#'):
+                continue
             values = [float(x) for x in line.strip().split('\t') if x]
             break
     return values

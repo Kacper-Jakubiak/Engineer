@@ -7,8 +7,8 @@
 #include "capala/hist.h"
 using namespace std;
 
-double get_force(double x) {
-    return -4.0 * std::sin(x);
+double get_force(const double x) {
+    return -4.0 * std::sin(x) + x / 100.0;
 }
 
 
@@ -44,6 +44,7 @@ int main(const int argc, char *argv[]) {
 
     const std::string result_filepath = std::string(PROJECT_ROOT) + "/result.txt";
     const std::string history_filepath = std::string(PROJECT_ROOT) + "/history.txt";
+    std::ofstream history_stream(history_filepath);
 
     cout << "BUILDING..." << std::endl;
     Schemer simulator = SchemerBuilder()
@@ -60,10 +61,9 @@ int main(const int argc, char *argv[]) {
             .set_log_interval_percent(1)
             .build();
     cout << "RUNNING..." << std::endl;
-    simulator.set_history_file(history_filepath);
-    simulator.run(steps);
+    simulator.run(steps, &history_stream, 5);
     cout << "FINISHED." << std::endl;
-    simulator.save_result(std::string(PROJECT_ROOT) + "/result.txt");
+    simulator.save_result(result_filepath);
 
     // TRAJEKTORIE
 
@@ -71,10 +71,9 @@ int main(const int argc, char *argv[]) {
     const auto histogram = get_histogram(alpha, beta, sigma, length,
         static_cast<int>(num_intervals), (dt * steps) / less_steps, less_steps, get_force);
 
-    std::ofstream hist_stream(std::string(PROJECT_ROOT) + "/histogram.txt");
+    std::ofstream histogram_stream(std::string(PROJECT_ROOT) + "/histogram.txt");
     for (const double v : histogram) {
-        hist_stream << v << "\t";
+        histogram_stream << v << "\t";
     }
-    hist_stream << std::endl;
-    hist_stream.close();
+    histogram_stream << std::endl;
 }

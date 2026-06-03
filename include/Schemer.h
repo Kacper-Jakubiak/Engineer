@@ -54,7 +54,7 @@ private:
 
     void save_current_values(std::ostream &os) const;
 
-    void initialize_params();
+    void initialize_values();
 
     void initialize_matrices();
 
@@ -77,7 +77,7 @@ public:
 
     void reset();
 
-    void run(int steps, int save_every = 0, std::ostream *history_stream = nullptr);
+    void run(int steps, std::ostream *history_stream = nullptr, int save_every = 0);
 
     void save_result(const std::string &filepath) const;
 

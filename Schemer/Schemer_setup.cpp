@@ -1,6 +1,6 @@
 #include "../include/Schemer.h"
 
-void Schemer::initialize_params() {
+void Schemer::initialize_values() {
     const double alpha = params.alpha;
 
     dx = params.length / static_cast<double>(params.num_intervals);

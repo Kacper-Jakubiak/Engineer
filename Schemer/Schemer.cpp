@@ -8,9 +8,9 @@
 #include <iomanip>
 
 Schemer::Schemer(Params params): params(std::move(params)) {
-    initialize_params();
+    initialize_values();
     initialize_matrices();
-    current_values = params.initial_values;
+    reset();
 }
 
 void Schemer::log(std::ostream &os, const double progress_percent) {
@@ -38,15 +38,19 @@ void Schemer::reset() {
     current_values = params.initial_values;
 }
 
-void Schemer::run(int steps, int save_every, std::ostream *history_stream) {
+void Schemer::run(const int steps, std::ostream *history_stream, const int save_every) {
     if (steps < 0)
         throw std::invalid_argument("amount of steps cannot be negative");
     if (save_every < 0)
         throw std::invalid_argument("save_every cannot be negative");
-
     if (save_every > 0 && history_stream == nullptr)
         std::cerr << "[WARNING] history_stream not provided, history will not be saved";
+
     const bool should_log_history = history_stream != nullptr && save_every > 0;
+    if (should_log_history) {
+        if (history_stream->tellp()<= 0)
+            save_parameters(*history_stream);
+    }
 
     std::ofstream log_stream;
     bool should_log_progress = params.log_interval_percent > 0;
@@ -80,8 +84,9 @@ void Schemer::run(int steps, int save_every, std::ostream *history_stream) {
 void Schemer::save_result(const std::string &filepath) const {
     std::ofstream out_stream(filepath);
     if (!out_stream) {
-        throw std::runtime_error("Failed to open result file: " + filepath);
+        throw std::runtime_error("Failed to open save file: " + filepath);
     }
+    save_parameters(out_stream);
     save_current_values(out_stream);
     if (params.verbose > 0)
         std::cout << "Saved to " << filepath << std::endl;

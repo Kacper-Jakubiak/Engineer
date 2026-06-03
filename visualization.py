@@ -1,29 +1,36 @@
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider
 import numpy as np
+from matplotlib.widgets import Slider
 from scipy.stats import norm
+
 
 def read_data(filename):
     data = []
     with open(filename, 'r') as f:
         for line in f:
-            values = [float(x) for x in line.strip().split(';') if x]
+            if line.startswith('#'):
+                continue
+            values = [float(x) for x in line.strip().split('\t') if x]
             data.append(values)
     return data
 
+
 def normal_distribution(length, I, sigma):
     xs = np.linspace(0, length, I)
-    ys = norm.pdf(xs, loc = length/2, scale = sigma)
+    ys = norm.pdf(xs, loc=length / 2, scale=sigma)
     return ys
 
-def normal_distribution_over_time(length, I, dt, J, f0, K = 1.0):
+
+def normal_distribution_over_time(length, I, dt, J, f0, K=1.0):
     data = [f0]
     normal = sum(f0) / 100
     for j in range(1, J):
-        data.append(normal * normal_distribution(length, I, np.sqrt(K*dt*j)))
+        data.append(normal * normal_distribution(length, I, np.sqrt(K * dt * j)))
     return data
 
+
 import numpy as np
+
 
 def plot_time_snapshot(ax, data, time_index=0):
     y = data[time_index]
@@ -61,6 +68,7 @@ def plot_symmetry_mse(ax, data):
     ax.set_ylabel("MSE")
     ax.set_title("Symmetry MSE")
 
+
 def plot_data_with_slider(data):
     time_index = 0
 
@@ -90,6 +98,7 @@ def plot_data_with_slider(data):
     slider.on_changed(update)
 
     plt.show()
+
 
 def dashboard(data):
     arr = np.array(data)
@@ -147,9 +156,11 @@ def dashboard(data):
 
     plt.show()
 
+
 def main():
     # Load data
-    filename = "result_0.50.txt"
+    filename = "history.txt"  # result_1.90.txt"
+    # filename = input("Enter the filename: ")
     data = read_data(filename)
     # K = sum(data[0])
     # data2 = normal_distribution_over_time(40, 4001, 0.001, 1001, data[0])
@@ -157,6 +168,6 @@ def main():
     dashboard(data)
     # dashboard(data2)
 
-if __name__ == "__main__":
-  main()
 
+if __name__ == "__main__":
+    main()
