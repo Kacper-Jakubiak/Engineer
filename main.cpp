@@ -57,15 +57,19 @@ int main(const int argc, char *argv[]) {
             .set_drift(mi)
             .set_theta(theta)
             .set_verbosity(verbose)
-            .set_force(get_force)
+            // .set_force(get_force)
             .set_log_interval_percent(1)
             .build();
+
+
     cout << "RUNNING..." << std::endl;
     simulator.run(steps, &history_stream, 5);
     cout << "FINISHED." << std::endl;
     simulator.save_result(result_filepath);
 
     // TRAJEKTORIE
+
+    return 0;
 
     const int less_steps = steps / 20;
     const auto histogram = get_histogram(alpha, beta, sigma, length,

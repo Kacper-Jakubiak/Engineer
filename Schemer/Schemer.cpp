@@ -25,7 +25,33 @@ void Schemer::log(std::ostream &os, const double progress_percent) {
 }
 
 void Schemer::save_parameters(std::ostream &os) const {
-    os << '#' << params.alpha << std::endl; //TODO
+    os << '#' << "alpha: " << params.alpha << '\n';
+    os << '#' << "beta: " << params.beta << '\n';
+    os << '#' << "sigma: " << params.sigma << '\n';
+    os << '#' << "length: " << params.length << '\n';
+
+    os << '#' << "dt: " << params.dt << '\n';
+    os << '#' << "num_intervals: " << params.num_intervals << '\n';
+    os << '#' << "theta: " << params.theta << '\n';
+
+    os << '#' << "delimiter: " << params.delimiter << '\n';
+    os << '#' << "log_interval_percent: " << params.log_interval_percent << '\n';
+    os << '#' << "verbose: " << params.verbose << '\n';
+
+    os << '#' << "initial_values: ";
+    for (Eigen::Index i = 0; i < params.initial_values.size(); i++)
+        os << params.initial_values(i) << params.delimiter;
+    os << '\n';
+
+    if (const double* force_mode_1 = std::get_if<double>(&params.force_mode)) {
+        os << '#' << "force_mode: " << *force_mode_1 << '\n';
+    }
+    else if (const std::vector<double>* force_mode_2 = std::get_if<std::vector<double> >(&params.force_mode)) {
+        os << '#' << "force_mode: ";
+        for (size_t i = 0; i < (*force_mode_2).size(); i++)
+            os << (*force_mode_2)[i] << params.delimiter;
+        os << '\n';
+    }
 }
 
 void Schemer::save_current_values(std::ostream &os) const {
