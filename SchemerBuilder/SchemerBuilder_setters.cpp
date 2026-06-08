@@ -78,7 +78,7 @@ SchemerBuilder &SchemerBuilder::set_delimiter(std::string value) {
     return *this;
 }
 
-SchemerBuilder &SchemerBuilder::set_log_interval_percent(const int value) {
+SchemerBuilder &SchemerBuilder::set_log_interval_percent(const double value) {
     params.log_interval_percent = value;
     return *this;
 }
@@ -109,5 +109,27 @@ SchemerBuilder &SchemerBuilder::set_zero_distance(const double value) {
 
 SchemerBuilder &SchemerBuilder::set_zero_middle() {
     zero_type = ZeroType::Middle;
+    return *this;
+}
+
+SchemerBuilder & SchemerBuilder::set_params(const Params &value) {
+    this->set_alpha(value.alpha);
+    this->set_beta(value.beta);
+    this->set_sigma(value.sigma);
+    this->set_length(value.length);
+    if (std::holds_alternative<double>(value.force_mode)) {
+        this->set_drift(std::get<double>(value.force_mode));
+    } else {
+        this->set_force(std::get<std::vector<double>>(value.force_mode));
+    }
+
+    this->set_dt(value.dt);
+    this->set_num_intervals(value.num_intervals);
+    this->set_theta(value.theta);
+
+    this->set_delimiter(value.delimiter);
+    this->set_log_interval_percent(value.log_interval_percent);
+    this->set_verbosity(value.verbose);
+
     return *this;
 }

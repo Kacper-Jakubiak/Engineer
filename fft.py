@@ -10,6 +10,14 @@ def read_line(filename) -> list[float]:
             break
     return values
 
+def get_length(filename) -> float:
+    with open(filename, 'r') as f:
+        for line in f:
+            if line.startswith('#length'):
+                return float(line.strip().split(' ')[-1])
+    raise ValueError("Length not found in file")
+
+
 
 def function(k, sigma, alpha, beta, mi):
     if alpha == 1:
@@ -58,7 +66,8 @@ def compare_distributions(distribution1, distribution2):
 def main():
     filename = "result.txt"
     histname = "histogram.txt"
-    L = 200.0
+    L = get_length(filename)
+    print(f"{L = }")
 
     sigma = 1.0
     alpha = 1.9

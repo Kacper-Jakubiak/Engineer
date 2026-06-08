@@ -7,7 +7,8 @@
 #include <chrono>
 #include <iomanip>
 
-Schemer::Schemer(Params params): params(std::move(params)) {
+Schemer::Schemer(Params params, Eigen::VectorXd initial_values)
+: params(std::move(params)), initial_values(std::move(initial_values)) {
     initialize_values();
     initialize_matrices();
     reset();
@@ -39,8 +40,8 @@ void Schemer::save_parameters(std::ostream &os) const {
     os << '#' << "verbose: " << params.verbose << '\n';
 
     os << '#' << "initial_values: ";
-    for (Eigen::Index i = 0; i < params.initial_values.size(); i++)
-        os << params.initial_values(i) << params.delimiter;
+    for (Eigen::Index i = 0; i < initial_values.size(); i++)
+        os << initial_values(i) << params.delimiter;
     os << '\n';
 
     switch (force_type) {
@@ -60,17 +61,6 @@ void Schemer::save_parameters(std::ostream &os) const {
         default:
             throw std::runtime_error("Invalid Force Type");
     }
-
-    // if (force_type == ForceType::Drift) {
-    //     const double mi = std::get<double>(params.force_mode);
-    //     os << '#' << "force_mode: " << mi << '\n';
-    // }
-    // else if (const std::vector<double>* force_mode_2 = std::get_if<std::vector<double> >(&params.force_mode)) {
-    //     os << '#' << "force_mode: ";
-    //     for (size_t i = 0; i < (*force_mode_2).size(); i++)
-    //         os << (*force_mode_2)[i] << params.delimiter;
-    //     os << '\n';
-    // }
 }
 
 void Schemer::save_current_values(std::ostream &os) const {
@@ -80,7 +70,7 @@ void Schemer::save_current_values(std::ostream &os) const {
 }
 
 void Schemer::reset() {
-    current_values = params.initial_values;
+    current_values = initial_values;
 }
 
 void Schemer::run(const int steps, std::ostream *history_stream, const int save_every) {

@@ -26,22 +26,7 @@ private:
         Vector
     };
 
-    Params params = {
-        .alpha = 0.0,
-        .beta = 0.0,
-        .sigma = 1.0,
-        .length = 40.0,
-        .force_mode = 0.0,
-
-        .dt = 0.001,
-        .num_intervals = 1000,
-        .theta = 0.5,
-
-        .delimiter = "\t",
-        .log_interval_percent = 5.0,
-        .verbose = 0,
-
-    };
+    Params params;
 
     InitialType initialization_type = InitialType::Dirac;
     Eigen::VectorXd initial_vector;
@@ -87,7 +72,7 @@ public:
 
     SchemerBuilder &set_delimiter(std::string value);
 
-    SchemerBuilder &set_log_interval_percent(int value);
+    SchemerBuilder &set_log_interval_percent(double value);
 
     SchemerBuilder &set_initial_conditions(const Eigen::VectorXd &value);
 
@@ -98,6 +83,8 @@ public:
     SchemerBuilder &set_zero_distance(double value);
 
     SchemerBuilder &set_zero_middle();
+
+    SchemerBuilder &set_params(const Params &value);
 
     [[nodiscard]] Schemer build() const;
 

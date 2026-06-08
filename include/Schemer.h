@@ -3,21 +3,19 @@
 #include <variant>
 
 struct Params {
-    double alpha;
-    double beta;
-    double sigma;
-    double length;
-    std::variant<double, std::vector<double> > force_mode;
+    double alpha = 0.0;
+    double beta = 0.0;
+    double sigma = 1.0;
+    double length = 40.0;
+    std::variant<double, std::vector<double> > force_mode = 0.0;
 
-    double dt;
-    Eigen::Index num_intervals;
-    double theta;
+    double dt = 0.001;
+    Eigen::Index num_intervals = 1000;
+    double theta = 0.5;
 
-    std::string delimiter;
-    double log_interval_percent;
-    int verbose;
-
-    Eigen::VectorXd initial_values;
+    std::string delimiter = "\t";
+    double log_interval_percent = 5.0;
+    int verbose = 1;
 };
 
 class Schemer {
@@ -36,6 +34,7 @@ private:
     };
 
     const Params params;
+    const Eigen::VectorXd initial_values;
 
     Eigen::MatrixXd step_matrix;
     Eigen::VectorXd current_values;
@@ -73,7 +72,7 @@ private:
 public:
     static constexpr double ALPHA_EPSILON = 1e-8;
 
-    explicit Schemer(Params params);
+    Schemer(Params params, Eigen::VectorXd initial_values);
 
     void reset();
 

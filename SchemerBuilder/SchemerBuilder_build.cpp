@@ -119,7 +119,7 @@ Schemer SchemerBuilder::build() const {
     validate_parameters();
 
     const Eigen::Index starting_index = compute_starting_index();
-    const auto starting_values = compute_initial_state(starting_index);
+    auto starting_values = compute_initial_state(starting_index);
 
     Params localized_params = this->params;
 
@@ -128,10 +128,9 @@ Schemer SchemerBuilder::build() const {
                                                             params.length / static_cast<double>(params.num_intervals));
     }
 
-    localized_params.initial_values = starting_values;
 
 
-    return Schemer(std::move(localized_params));
+    return {std::move(localized_params), std::move(starting_values)};
 }
 
 Params SchemerBuilder::build_params() const {
@@ -146,8 +145,6 @@ Params SchemerBuilder::build_params() const {
         localized_params.force_mode = compute_force_values(starting_index,
                                                             params.length / static_cast<double>(params.num_intervals));
     }
-
-    localized_params.initial_values = starting_values;
 
     return localized_params;
 }
