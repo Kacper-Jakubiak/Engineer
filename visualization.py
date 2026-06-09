@@ -159,7 +159,7 @@ def dashboard(data):
 
 def main():
     # Load data
-    filename = "history.txt"  # result_1.90.txt"
+    filename = "history.csv"  # result_1.90.txt"
     # filename = input("Enter the filename: ")
     data = read_data(filename)
     # K = sum(data[0])

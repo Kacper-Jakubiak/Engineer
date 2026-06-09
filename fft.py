@@ -64,8 +64,8 @@ def compare_distributions(distribution1, distribution2):
 
 
 def main():
-    filename = "result.txt"
-    histname = "histogram.txt"
+    filename = "result.csv"
+    histname = "histogram.csv"
     L = get_length(filename)
     print(f"{L = }")
 

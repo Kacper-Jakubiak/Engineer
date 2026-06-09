@@ -35,6 +35,7 @@ private:
 
     const Params params;
     const Eigen::VectorXd initial_values;
+    int steps_taken;
 
     Eigen::MatrixXd step_matrix;
     Eigen::VectorXd current_values;

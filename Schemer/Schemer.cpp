@@ -71,6 +71,7 @@ void Schemer::save_current_values(std::ostream &os) const {
 
 void Schemer::reset() {
     current_values = initial_values;
+    steps_taken = 0;
 }
 
 void Schemer::run(const int steps, std::ostream *history_stream, const int save_every) {
@@ -106,6 +107,7 @@ void Schemer::run(const int steps, std::ostream *history_stream, const int save_
             save_current_values(*history_stream);
 
         current_values = step_matrix * current_values;
+        steps_taken++;
     }
 
     if (should_log_history)
@@ -122,6 +124,7 @@ void Schemer::save_result(const std::string &filepath) const {
         throw std::runtime_error("Failed to open save file: " + filepath);
     }
     save_parameters(out_stream);
+    out_stream << '#' << "steps: " << steps_taken << std::endl;
     save_current_values(out_stream);
     if (params.verbose > 0)
         std::cout << "Saved to " << filepath << std::endl;

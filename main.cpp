@@ -57,8 +57,8 @@ int main(const int argc, char *argv[]) {
 
     // GŁÓWNY MAIN
 
-    const std::string result_filepath = std::string(PROJECT_ROOT) + "/result.txt";
-    const std::string history_filepath = std::string(PROJECT_ROOT) + "/history.txt";
+    const std::string result_filepath = std::string(PROJECT_ROOT) + "/result.csv";
+    const std::string history_filepath = std::string(PROJECT_ROOT) + "/history.csv";
     std::ofstream history_stream(history_filepath);
 
     auto force = force_from_int(force_input);
@@ -91,7 +91,7 @@ int main(const int argc, char *argv[]) {
     const auto histogram = get_histogram(params.alpha, params.beta, params.sigma, params.length,
         static_cast<int>(params.num_intervals), (params.dt * steps) / less_steps, less_steps, force);
 
-    std::ofstream histogram_stream(std::string(PROJECT_ROOT) + "/histogram.txt");
+    std::ofstream histogram_stream(std::string(PROJECT_ROOT) + "/histogram.csv");
     for (const double v : histogram) {
         histogram_stream << v << "\t";
     }
