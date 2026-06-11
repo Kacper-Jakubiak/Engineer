@@ -52,8 +52,8 @@ def alg(points, L, sigma, alpha, beta, mi):
 
 
 def compare_distributions(dist1, dist2, dx):
-    dist1 = np.asarray(dist1)
-    dist2 = np.asarray(dist2)
+    dist1 = np.asarray(dist1) * dx
+    dist2 = np.asarray(dist2) * dx
     if dist1.shape != dist2.shape:
         raise ValueError(f"Shapes do not match: {dist1.shape} != {dist2.shape}")
 
@@ -66,10 +66,11 @@ def compare_distributions(dist1, dist2, dx):
 
     tvd = 0.5 * np.sum(np.abs(dist1 - dist2))
 
-    ovl = np.sum(np.minimum(dist1, dist2)) * dx
+    ovl = np.sum(np.minimum(dist1, dist2))
 
     hellinger = np.sqrt(0.5 * np.sum((np.sqrt(dist1) - np.sqrt(dist2)) ** 2))
 
+    print()
     print(f"MAE: {mae:.6}, MSE: {mse:.6}")
     print(f"KS Statistic: {ks_stat:.6}")
     print(f"Total Variation Distance: {tvd:.6}")
