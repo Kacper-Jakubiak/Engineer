@@ -20,7 +20,8 @@ void SchemerBuilder::validate_parameters() const {
 
     if (params.log_interval_percent < 0.0) throw std::invalid_argument("log interval percent must be non-negative");
 
-    if (std::abs(params.alpha-1) < Schemer::ALPHA_EPSILON && params.beta != 0.0) throw std::invalid_argument("beta != 0.0 not supported for alpha = 1.0");
+    if (std::abs(params.alpha - 1) < Schemer::ALPHA_EPSILON && params.beta != 0.0) throw std::invalid_argument(
+        "beta != 0.0 not supported for alpha = 1.0");
 
 
     if (params.dt > 1.0) std::cerr << "[WARNING] dt > 1.0\n" << std::endl;
@@ -68,7 +69,7 @@ Eigen::VectorXd SchemerBuilder::compute_initial_state(const Eigen::Index startin
 
     switch (initialization_type) {
         case InitialType::Dirac:
-            starting_values(starting_index) = static_cast<double>(params.num_intervals);
+            starting_values(starting_index) = static_cast<double>(params.num_intervals) / params.length;
             break;
 
         case InitialType::Vector:
@@ -125,9 +126,8 @@ Schemer SchemerBuilder::build() const {
 
     if (force_type != ForceType::Drift) {
         localized_params.force_mode = compute_force_values(starting_index,
-                                                            params.length / static_cast<double>(params.num_intervals));
+                                                           params.length / static_cast<double>(params.num_intervals));
     }
-
 
 
     return {std::move(localized_params), std::move(starting_values)};
@@ -143,7 +143,7 @@ Params SchemerBuilder::build_params() const {
 
     if (force_type != ForceType::Drift) {
         localized_params.force_mode = compute_force_values(starting_index,
-                                                            params.length / static_cast<double>(params.num_intervals));
+                                                           params.length / static_cast<double>(params.num_intervals));
     }
 
     return localized_params;

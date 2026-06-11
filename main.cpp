@@ -14,15 +14,15 @@ using namespace std;
 double (*force_from_int(const int n))(const double x) {
     switch (n) {
         case 0:
-            return [](const double x) {return 0.0;};
+            return [](const double x) { return 0.0; };
         case 1:
-            return [](const double x) {return -2*x;};
+            return [](const double x) { return -2 * x; };
         case 2:
-            return [](const double x) {return -4.0 * std::sin(x);};
+            return [](const double x) { return -4.0 * std::sin(x); };
         case 3:
-            return [](const double x) {return x-x*x*x;};
+            return [](const double x) { return std::max(-50.0, std::min(x - x * x * x, 50.0)); };
         case 4:
-            return [](const double x) {return -(4.0 * x) / (1.0 + x * x);};
+            return [](const double x) { return -(4.0 * x) / (1.0 + x * x); };
         default:
             throw std::invalid_argument("Invalid force input");
     }
@@ -77,7 +77,7 @@ int main(const int argc, char *argv[]) {
 
 
     cout << "RUNNING..." << std::endl;
-    simulator.run(steps, &history_stream, 5);
+    simulator.run(steps, &history_stream, 50);
 
     cout << "FINISHED." << std::endl;
     simulator.save_result(result_filepath);
@@ -89,10 +89,11 @@ int main(const int argc, char *argv[]) {
     cout << "TRAJECTORIES..." << std::endl;
     const int less_steps = steps / 10;
     const auto histogram = get_histogram(params.alpha, params.beta, params.sigma, params.length,
-        static_cast<int>(params.num_intervals), (params.dt * steps) / less_steps, less_steps, force);
+                                         static_cast<int>(params.num_intervals), (params.dt * steps) / less_steps,
+                                         less_steps, force);
 
     std::ofstream histogram_stream(std::string(PROJECT_ROOT) + "/histogram.csv");
-    for (const double v : histogram) {
+    for (const double v: histogram) {
         histogram_stream << v << "\t";
     }
     histogram_stream << std::endl;

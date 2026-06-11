@@ -8,7 +8,7 @@
 #include <iomanip>
 
 Schemer::Schemer(Params params, Eigen::VectorXd initial_values)
-: params(std::move(params)), initial_values(std::move(initial_values)) {
+    : params(std::move(params)), initial_values(std::move(initial_values)) {
     initialize_values();
     initialize_matrices();
     reset();
@@ -51,9 +51,9 @@ void Schemer::save_parameters(std::ostream &os) const {
             break;
         }
         case ForceType::Force: {
-            const auto &force_vector = std::get<std::vector<double>>(params.force_mode);
+            const auto &force_vector = std::get<std::vector<double> >(params.force_mode);
             os << '#' << "force_mode: ";
-            for (const double force_value : force_vector)
+            for (const double force_value: force_vector)
                 os << force_value << params.delimiter;
             os << std::endl;
             break;
@@ -84,7 +84,7 @@ void Schemer::run(const int steps, std::ostream *history_stream, const int save_
 
     const bool should_log_history = history_stream != nullptr && save_every > 0;
     if (should_log_history) {
-        if (history_stream->tellp()<= 0)
+        if (history_stream->tellp() <= 0)
             save_parameters(*history_stream);
     }
 

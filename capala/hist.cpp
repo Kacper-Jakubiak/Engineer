@@ -6,21 +6,23 @@
 #include "hist.h"
 
 #include <functional>
+#define NUM_PARTICLES 100000
 
-std::vector<double> generate_histogram(const std::vector<double>& data, int num_bins, double min_range, double max_range) {
+std::vector<double> generate_histogram(const std::vector<double> &data, int num_bins, double min_range,
+                                       double max_range) {
     std::vector<int> counts(num_bins, 0);
 
     double length = max_range - min_range;
     double bin_width = length / num_bins;
     int out_of_range = 0;
 
-    for (double value : data) {
+    for (double value: data) {
         if (value < min_range || value >= max_range) {
             out_of_range++;
             continue;
         }
 
-        int bin_idx = static_cast<int>((value - min_range) / bin_width);
+        const int bin_idx = static_cast<int>((value - min_range) / bin_width);
 
         if (bin_idx < 0 || bin_idx >= num_bins) {
             out_of_range++;
@@ -32,16 +34,18 @@ std::vector<double> generate_histogram(const std::vector<double>& data, int num_
 
     std::cout << out_of_range << " / " << data.size() << " out of range";
 
-    std::vector<double> density(num_bins, 0.0);
+    std::vector density(num_bins, 0.0);
 
-    double normalization_factor = data.size() * bin_width;
+    const double normalization_factor = static_cast<double>(data.size()) * bin_width;
     for (int i = 0; i < num_bins; ++i)
-        density[i] = counts[i] * length / normalization_factor;
+        density[i] = counts[i] / normalization_factor;
 
     return density;
 }
 
-std::vector<double> generate_positions(alfaStabilny& levyGenerator, int num_particles, double dt, int steps, double noise, const std::function<double(double)>& force) {
+
+std::vector<double> generate_positions(alfaStabilny &levyGenerator, int num_particles, double dt, int steps,
+                                       double noise, const std::function<double(double)> &force) {
     vector<double> positions;
     positions.reserve(num_particles);
 
@@ -70,18 +74,17 @@ std::vector<double> generate_positions(alfaStabilny& levyGenerator, int num_part
 }
 
 
-std::vector<double> get_histogram(double alpha, double beta, double sigma, double length, int num_intervals, double dt, int steps, const std::function<double(double)>& force) {
+std::vector<double> get_histogram(double alpha, double beta, double sigma, double length, int num_intervals, double dt,
+                                  int steps, const std::function<double(double)> &force) {
     std::random_device rd;
     std::mt19937 gen(rd());
 
     alfaStabilny levyGenerator(alpha, beta, 0.0, sigma, &gen);
 
-    int num_particles = 500000;
     double noise_scaling = std::pow(dt, 1.0 / alpha);
 
-
-    auto positions = generate_positions(levyGenerator, num_particles, dt, steps, noise_scaling, force);
-    auto histogram = generate_histogram(positions, num_intervals + 1, -length/2, length/2);
+    auto positions = generate_positions(levyGenerator, NUM_PARTICLES, dt, steps, noise_scaling, force);
+    auto histogram = generate_histogram(positions, num_intervals + 1, -length / 2, length / 2);
 
     return histogram;
 }

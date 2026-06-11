@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial.distance import jensenshannon
+
 
 def read_line(filename) -> list[float]:
     with open(filename, 'r') as f:
@@ -10,13 +12,13 @@ def read_line(filename) -> list[float]:
             break
     return values
 
+
 def get_length(filename) -> float:
     with open(filename, 'r') as f:
         for line in f:
             if line.startswith('#length'):
                 return float(line.strip().split(' ')[-1])
     raise ValueError("Length not found in file")
-
 
 
 def function(k, sigma, alpha, beta, mi):
@@ -49,18 +51,30 @@ def alg(points, L, sigma, alpha, beta, mi):
     return f_plus.tolist()
 
 
-def compare_distributions(distribution1, distribution2):
-    if distribution1.shape != distribution2.shape:
-        raise ValueError(f"Shapes do not match: {distribution1.shape} != {distribution2.shape}")
-    mae = np.mean(np.abs(distribution1 - distribution2))
-    mse = np.mean((distribution1 - distribution2) ** 2)
-    cdf_f = np.cumsum(distribution1)
-    cdf_calc = np.cumsum(distribution2)
-    ks_stat = np.max(np.abs(cdf_f - cdf_calc))
-    print()
-    print(f"MAE: {mae:.6f}")
-    print(f"MSE: {mse:.6f}")
-    print(f"KS Statistic: {ks_stat:.6f}")
+def compare_distributions(dist1, dist2, dx):
+    dist1 = np.asarray(dist1)
+    dist2 = np.asarray(dist2)
+    if dist1.shape != dist2.shape:
+        raise ValueError(f"Shapes do not match: {dist1.shape} != {dist2.shape}")
+
+    mae = np.mean(np.abs(dist1 - dist2))
+    mse = np.mean((dist1 - dist2) ** 2)
+
+    cdf1 = np.cumsum(dist1)
+    cdf2 = np.cumsum(dist2)
+    ks_stat = np.max(np.abs(cdf1 - cdf2))
+
+    tvd = 0.5 * np.sum(np.abs(dist1 - dist2))
+
+    ovl = np.sum(np.minimum(dist1, dist2)) * dx
+
+    hellinger = np.sqrt(0.5 * np.sum((np.sqrt(dist1) - np.sqrt(dist2)) ** 2))
+
+    print(f"MAE: {mae:.6}, MSE: {mse:.6}")
+    print(f"KS Statistic: {ks_stat:.6}")
+    print(f"Total Variation Distance: {tvd:.6}")
+    print(f"Hellinger Distance: {hellinger:.6}")
+    print(f"Overlap Coefficient: {ovl:.6}")
 
 
 def main():
@@ -76,7 +90,6 @@ def main():
 
     time = 1.0
 
-
     calculated = read_line(filename)
     histogram = read_line(histname)
 
@@ -90,9 +103,9 @@ def main():
     # print(f"{len(histogram) = }")
     print(f"{sum(calculated) = }")
     print(f"{sum(histogram) = }")
+    print(f"{sum(calculated) * dx = }")
+    print(f"{sum(histogram) * dx = }")
     # print(f"{sum(f) = }")
-
-
 
     print(f"{dx = }")
     print(f"{1/dx = }")
@@ -100,7 +113,7 @@ def main():
     x_min, x_max = - L / 2, L / 2
     xs = np.linspace(x_min, x_max, points)
 
-    compare_distributions(np.array(calculated), np.array(histogram))
+    compare_distributions(calculated, histogram, dx)
 
     # plt.plot(xs, f, label="Inverse FFT")
     plt.plot(xs, histogram, label="Histogram")
