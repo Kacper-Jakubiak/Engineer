@@ -61,6 +61,13 @@ void Schemer::save_parameters(std::ostream &os) const {
         default:
             throw std::runtime_error("Invalid Force Type");
     }
+
+    os << '#' << "x_coordinates: ";
+    for (const double position: coordinates) {
+        os << position << params.delimiter;
+    }
+    os << std::endl;
+
 }
 
 void Schemer::save_current_values(std::ostream &os) const {

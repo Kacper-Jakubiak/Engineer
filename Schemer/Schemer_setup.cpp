@@ -6,6 +6,12 @@ void Schemer::initialize_values() {
     dx = params.length / static_cast<double>(params.num_intervals);
     n = std::ceil(alpha);
     size = params.num_intervals + 1;
+    coordinates.resize(size);
+    for (Eigen::Index i = 0; i < size; ++i) {
+        const double position = dx * static_cast<double>(i - params.starting_index);
+        coordinates[i] = position;
+    }
+
 
     if (std::holds_alternative<double>(params.force_mode)) {
         force_type = ForceType::Drift;

@@ -8,6 +8,7 @@ struct Params {
     double sigma = 1.0;
     double length = 40.0;
     std::variant<double, std::vector<double> > force_mode = 0.0;
+    Eigen::Index starting_index = 0;
 
     double dt = 0.001;
     Eigen::Index num_intervals = 1000;
@@ -45,6 +46,7 @@ private:
     double R;
     double omega;
     double n;
+    std::vector<double> coordinates;
     SchemeType state;
     ForceType force_type;
 

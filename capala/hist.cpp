@@ -79,7 +79,7 @@ std::vector<double> get_histogram(double alpha, double beta, double sigma, doubl
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    alfaStabilny levyGenerator(alpha, beta, 0.0, sigma, &gen);
+    alfaStabilny levyGenerator(alpha, beta, 0.0, std::pow(sigma, 1.0 / alpha), &gen);
 
     double noise_scaling = std::pow(dt, 1.0 / alpha);
 

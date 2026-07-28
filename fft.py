@@ -52,8 +52,12 @@ def alg(points, L, sigma, alpha, beta, mi):
 
 
 def compare_distributions(dist1, dist2, dx):
-    dist1 = np.asarray(dist1) * dx
-    dist2 = np.asarray(dist2) * dx
+    dist1 = np.asarray(dist1)
+    dist2 = np.asarray(dist2)
+    dist1 /= np.sum(dist1)
+    dist2 /= np.sum(dist2)
+    dist1 = np.clip(dist1, 0, None)
+    dist2 = np.clip(dist2, 0, None)
     if dist1.shape != dist2.shape:
         raise ValueError(f"Shapes do not match: {dist1.shape} != {dist2.shape}")
 
@@ -79,8 +83,9 @@ def compare_distributions(dist1, dist2, dx):
 
 
 def main():
-    filename = "result.csv"
-    histname = "histogram.csv"
+    path = "results/force2.1/"
+    filename = path + "result.csv"
+    histname = path + "histogram.csv"
     L = get_length(filename)
     print(f"{L = }")
 
@@ -102,14 +107,14 @@ def main():
 
     # print(f"{len(calculated) = }")
     # print(f"{len(histogram) = }")
-    print(f"{sum(calculated) = }")
-    print(f"{sum(histogram) = }")
+    # print(f"{sum(calculated) = }")
+    # print(f"{sum(histogram) = }")
     print(f"{sum(calculated) * dx = }")
     print(f"{sum(histogram) * dx = }")
     # print(f"{sum(f) = }")
 
-    print(f"{dx = }")
-    print(f"{1/dx = }")
+    # print(f"{dx = }")
+    # print(f"{1/dx = }")
 
     x_min, x_max = - L / 2, L / 2
     xs = np.linspace(x_min, x_max, points)
@@ -118,7 +123,7 @@ def main():
 
     # plt.plot(xs, f, label="Inverse FFT")
     plt.plot(xs, histogram, label="Histogram")
-    plt.plot(xs, calculated, label="Calculated")
+    # plt.plot(xs, calculated, label="Calculated")
     plt.legend()
     plt.show()
 

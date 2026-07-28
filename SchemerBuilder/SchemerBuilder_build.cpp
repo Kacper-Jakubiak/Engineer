@@ -119,10 +119,13 @@ std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index star
 Schemer SchemerBuilder::build() const {
     validate_parameters();
 
+    Params localized_params = this->params;
+
     const Eigen::Index starting_index = compute_starting_index();
+    localized_params.starting_index = starting_index;
+
     auto starting_values = compute_initial_state(starting_index);
 
-    Params localized_params = this->params;
 
     if (force_type != ForceType::Drift) {
         localized_params.force_mode = compute_force_values(starting_index,
@@ -136,15 +139,19 @@ Schemer SchemerBuilder::build() const {
 Params SchemerBuilder::build_params() const {
     validate_parameters();
 
-    const Eigen::Index starting_index = compute_starting_index();
-    const auto starting_values = compute_initial_state(starting_index);
-
     Params localized_params = this->params;
+
+    const Eigen::Index starting_index = compute_starting_index();
+    localized_params.starting_index = starting_index;
+
+    auto starting_values = compute_initial_state(starting_index);
+
 
     if (force_type != ForceType::Drift) {
         localized_params.force_mode = compute_force_values(starting_index,
                                                            params.length / static_cast<double>(params.num_intervals));
     }
+
 
     return localized_params;
 }
