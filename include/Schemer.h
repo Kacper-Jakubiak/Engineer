@@ -77,13 +77,17 @@ public:
 
     Schemer(Params params, Eigen::VectorXd initial_values);
 
+    Schemer(const Schemer &) = delete;
+    Schemer &operator=(const Schemer &) = delete;
+
+    Schemer(Schemer &&) noexcept = delete;
+    Schemer &operator=(Schemer &&) noexcept = delete;
+
+    ~Schemer() = default;
+
     void reset();
 
     void run(int steps, std::ostream *history_stream = nullptr, int save_every = 0);
 
     void save_result(const std::string &filepath) const;
-
-    Schemer(const Schemer &) = delete;
-
-    Schemer &operator=(const Schemer &) = delete;
 };

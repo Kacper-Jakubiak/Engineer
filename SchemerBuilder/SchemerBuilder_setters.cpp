@@ -23,18 +23,23 @@ SchemerBuilder &SchemerBuilder::set_length(const double value) {
     return *this;
 }
 
+// --- Force Configuration ---
+
 SchemerBuilder &SchemerBuilder::set_drift(const double value) {
-    if (force_type != ForceType::Drift)
-        std::cerr << "[WARNING]: force already set, drift will be used instead\n";
+    // Warn the user if a custom force function or vector is being overridden
+    if (force_type != ForceType::Drift) {
+        std::cerr << "[WARNING]: force was previously set. Drift will be used instead\n";
+    }
     params.force_mode = value;
     force_type = ForceType::Drift;
     return *this;
 }
 
 SchemerBuilder &SchemerBuilder::set_force(std::vector<double> value) {
+    // Warn if replacing an existing drift setting
     if (force_type == ForceType::Drift && std::holds_alternative<double>(params.force_mode)) {
         if (std::get<double>(params.force_mode) != 0.0) {
-            std::cerr << "[WARNING]: drift already set, resetting drift to 0.0. Force will be used instead\n";
+            std::cerr << "[WARNING]: drift was previously set. Force will be used instead\n";
         }
     }
     force_vector = std::move(value);
@@ -43,15 +48,18 @@ SchemerBuilder &SchemerBuilder::set_force(std::vector<double> value) {
 }
 
 SchemerBuilder &SchemerBuilder::set_force(std::function<double(double)> value) {
+    // Warn if replacing an existing drift setting
     if (force_type == ForceType::Drift && std::holds_alternative<double>(params.force_mode)) {
         if (std::get<double>(params.force_mode) != 0.0) {
-            std::cerr << "[WARNING]: drift already set, resetting drift to 0.0. Force will be used instead\n";
+            std::cerr << "[WARNING]: drift was previously set. Force will be used instead\n";
         }
     }
     force_function = std::move(value);
     force_type = ForceType::Function;
     return *this;
 }
+
+// --- Numerical Grid & Stepping ---
 
 SchemerBuilder &SchemerBuilder::set_dt(const double value) {
     params.dt = value;
@@ -68,6 +76,8 @@ SchemerBuilder &SchemerBuilder::set_theta(const double value) {
     return *this;
 }
 
+// --- Logging & Output ---
+
 SchemerBuilder &SchemerBuilder::set_verbosity(const int value) {
     params.verbose = value;
     return *this;
@@ -83,6 +93,8 @@ SchemerBuilder &SchemerBuilder::set_log_interval_percent(const double value) {
     return *this;
 }
 
+// --- Initial Conditions ---
+
 SchemerBuilder &SchemerBuilder::set_initial_conditions(const Eigen::VectorXd &value) {
     initial_vector = value;
     initialization_type = InitialType::Vector;
@@ -90,10 +102,13 @@ SchemerBuilder &SchemerBuilder::set_initial_conditions(const Eigen::VectorXd &va
 }
 
 SchemerBuilder &SchemerBuilder::set_initial_conditions(const std::vector<double> &value) {
+    // Map standard vector data directly into the Eigen vector format
     initial_vector = Eigen::VectorXd::Map(value.data(), static_cast<Eigen::Index>(value.size()));
     initialization_type = InitialType::Vector;
     return *this;
 }
+
+// --- Zero Placement Options ---
 
 SchemerBuilder &SchemerBuilder::set_zero_index(const long long int value) {
     zero_index = value;
@@ -112,11 +127,16 @@ SchemerBuilder &SchemerBuilder::set_zero_middle() {
     return *this;
 }
 
-SchemerBuilder & SchemerBuilder::set_params(const Params &value) {
+// --- Bulk Configuration ---
+
+SchemerBuilder &SchemerBuilder::set_params(const Params &value) {
+    // Delegate to existing setter methods to ensure correct state updates
     this->set_alpha(value.alpha);
     this->set_beta(value.beta);
     this->set_sigma(value.sigma);
     this->set_length(value.length);
+
+    // Unpack force variant (drift value vs. force vector)
     if (std::holds_alternative<double>(value.force_mode)) {
         this->set_drift(std::get<double>(value.force_mode));
     } else {
