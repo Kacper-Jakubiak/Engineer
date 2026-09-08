@@ -4,18 +4,24 @@ project(Engineer)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Engineer main.cpp
-        include/Schemer.h
-        Schemer/Schemer.cpp
-        Schemer/Schemer_setup.cpp
-        Schemer/Schemer_matrices.cpp
+        include/Params.h
+        include/Grid1D.h
+        include/PreparedSystem.h
+
         include/SchemerBuilder.h
-        SchemerBuilder/SchemerBuilder_setters.cpp
-        SchemerBuilder/SchemerBuilder_build.cpp
+        include/SchemerRunner.h
+        include/FractionalScheme.h
+
+        src/SchemerBuilder_setters.cpp
+        src/SchemerBuilder_build.cpp
+        src/SchemerRunner.cpp
+        src/FractionalScheme.cpp
 
         capala/alfaStabilny.h
-        capala/alfaStabilny.cpp
         capala/hist.h
+        capala/alfaStabilny.cpp
         capala/hist.cpp
+        include/Schemer.h
 )
 
 include(FetchContent)

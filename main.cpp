@@ -3,7 +3,6 @@
 #include <fstream>
 
 #include "include/Schemer.h"
-#include "include/SchemerBuilder.h"
 #include "capala/hist.h"
 using namespace std;
 
@@ -64,7 +63,7 @@ int main(const int argc, char *argv[]) {
     auto force = force_from_int(force_input);
 
     cout << "BUILDING..." << std::endl;
-    Schemer simulator = SchemerBuilder()
+    SchemerRunner simulator = SchemerBuilder()
             .set_alpha(params.alpha)
             .set_beta(params.beta)
             .set_sigma(params.sigma)
@@ -84,7 +83,7 @@ int main(const int argc, char *argv[]) {
 
     // TRAJEKTORIE
 
-    // return 0;
+    return 0;
 
     cout << "TRAJECTORIES..." << std::endl;
     const int less_steps = steps / 10;

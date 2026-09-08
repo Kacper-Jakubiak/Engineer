@@ -5,7 +5,10 @@
 
 #pragma once
 
-#include "Schemer.h"
+#include "SchemerRunner.h"
+#include "Params.h"
+#include "Grid1D.h"
+#include <Eigen/Dense>
 #include <functional>
 #include <vector>
 
@@ -84,11 +87,14 @@ private:
 
     /**
      * @brief Calculates the force at each grid point.
-     * @param starting_index The grid spot for zero position.
-     * @param dx Space step size between grid points.
+     * @param grid
      * @return std::vector<double> List of calculated force values.
      */
-    [[nodiscard]] std::vector<double> compute_force_values(Eigen::Index starting_index, double dx) const;
+    [[nodiscard]] std::vector<double> compute_force_values(const Grid1D &grid) const;
+
+    [[nodiscard]] Grid1D build_grid(Eigen::Index starting_index, double dx) const;
+
+    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const Params &local_params, const Grid1D &grid) const;
 
 public:
     /**
@@ -162,7 +168,7 @@ public:
     SchemerBuilder &set_theta(double value);
 
     /**
-     * @brief Sets verbosity level of the returned solver.
+     * @brief Sets the verbosity level of the returned solver.
      * @param value Detail level (higher means more logs).
      * @return SchemerBuilder& Reference to this builder.
      */
@@ -227,11 +233,11 @@ public:
      * @brief Checks options and creates the final Schemer object.
      * @return Schemer Built Schemer solver object.
      */
-    [[nodiscard]] Schemer build() const;
+    [[nodiscard]] SchemerRunner build() const;
 
     /**
      * @brief Checks options and creates the Params object.
      * @return Params Built Params object.
      */
-    [[nodiscard]] Params build_params() const;
+    [[nodiscard]] PreparedSystem build_system() const;
 };

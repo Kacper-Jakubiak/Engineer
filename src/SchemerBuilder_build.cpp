@@ -3,6 +3,8 @@
 #include <fstream>
 #include <stdexcept>
 
+#include "../include/FractionalScheme.h"
+
 void SchemerBuilder::validate_parameters() const {
     if (params.alpha <= 0.0 || params.alpha > 2.0) throw std::invalid_argument("alpha must be in (0, 2]");
     if (std::abs(params.beta) > 1.0) throw std::invalid_argument("beta must be in [-1, 1]");
@@ -15,7 +17,7 @@ void SchemerBuilder::validate_parameters() const {
     if (params.log_interval_percent < 0.0) throw std::invalid_argument("log interval percent must be non-negative");
 
     // (beta != 0) is not supported when alpha = 1.0
-    if (std::abs(params.alpha - 1) < Schemer::ALPHA_EPSILON && params.beta != 0.0) {
+    if (std::abs(params.alpha - 1) < FractionalScheme::ALPHA_EPSILON && params.beta != 0.0) {
         throw std::invalid_argument("beta != 0.0 not supported for alpha = 1.0");
     }
 
@@ -89,7 +91,7 @@ Eigen::VectorXd SchemerBuilder::compute_initial_state(const Eigen::Index startin
     return starting_values;
 }
 
-std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index starting_index, const double dx) const {
+std::vector<double> SchemerBuilder::compute_force_values(const Grid1D& grid) const {
     std::vector<double> force_values;
 
     switch (force_type) {
@@ -102,17 +104,17 @@ std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index star
             if (!force_function)
                 throw std::invalid_argument("force function not set");
 
-            force_values.reserve(params.num_intervals + 1);
-            for (Eigen::Index i = 0; i <= params.num_intervals; ++i) {
-                const double position = dx * static_cast<double>(i - starting_index);
-                force_values.push_back(force_function(position));
+            force_values.resize(grid.size);
+            for (Eigen::Index i = 0; i < grid.size; ++i) {
+                const double position = grid.coordinates[i];
+                force_values[i] = force_function(position);
             }
             break;
         }
 
         case ForceType::Vector:
             // Use pre-computed spatial force vector
-            if (force_vector.size() != params.num_intervals + 1)
+            if (force_vector.size() != grid.size)
                 throw std::invalid_argument("force vector must have size I+1");
             force_values = force_vector;
             break;
@@ -123,49 +125,62 @@ std::vector<double> SchemerBuilder::compute_force_values(const Eigen::Index star
     return force_values;
 }
 
-// --- Builder Finalization ---
+Grid1D SchemerBuilder::build_grid(const Eigen::Index starting_index, const double dx) const {
+    Grid1D grid;
+    grid.size = params.num_intervals + 1;
+    grid.dx = dx;
+    grid.starting_index = starting_index;
 
-Schemer SchemerBuilder::build() const {
-    // 1. Validate all inputs
-    validate_parameters();
-
-    Params localized_params = this->params;
-
-    // 2. Resolve grid zero position index
-    const Eigen::Index starting_index = compute_starting_index();
-    localized_params.starting_index = starting_index;
-
-    // 3. Prepare initial state
-    auto starting_values = compute_initial_state(starting_index);
-
-    // 4. Compute forces if configured
-    if (force_type != ForceType::Drift) {
-        localized_params.force_mode = compute_force_values(starting_index,
-                                                           params.length / static_cast<double>(params.num_intervals));
+    grid.coordinates.resize(grid.size);
+    for (Eigen::Index i = 0; i < grid.size; ++i) {
+        grid.coordinates[i] = dx * static_cast<double>(i - starting_index);
     }
-
-    // 5. Construct fully initialized solver
-    return {std::move(localized_params), std::move(starting_values)};
+    return grid;
 }
 
-Params SchemerBuilder::build_params() const {
+Eigen::MatrixXd SchemerBuilder::assemble_step_matrix(const Params &local_params, const Grid1D &grid) const {
+    const FractionalScheme fractional_scheme{local_params, grid};
+
+    Eigen::MatrixXd diffusion_matrix = fractional_scheme.build_diffusion_matrix();
+
+    Eigen::MatrixXd force_matrix = fractional_scheme.build_force_matrix();
+
+    const Eigen::MatrixXd id = Eigen::MatrixXd::Identity(grid.size, grid.size);
+
+    const Eigen::MatrixXd Lhs = id + params.theta * (force_matrix + diffusion_matrix);
+    const Eigen::MatrixXd Rhs = id - (1 - params.theta) * (force_matrix + diffusion_matrix);
+
+    const Eigen::PartialPivLU<Eigen::MatrixXd> solver(Lhs);
+    return solver.solve(Rhs);
+}
+
+PreparedSystem SchemerBuilder::build_system() const {
     // 1. Validate all inputs
     validate_parameters();
 
     Params localized_params = this->params;
 
-    // 2. Resolve grid zero position index
+    // 2. Resolve spatial variables
     const Eigen::Index starting_index = compute_starting_index();
-    localized_params.starting_index = starting_index;
+    const double dx = params.length / static_cast<double>(params.num_intervals);
 
-    // 3. Prepare initial state (validates parameters)
-    auto starting_values = compute_initial_state(starting_index);
+    Grid1D grid = build_grid(starting_index, dx);
 
-    // 4. Compute forces if configured
     if (force_type != ForceType::Drift) {
-        localized_params.force_mode = compute_force_values(starting_index,
-                                                           params.length / static_cast<double>(params.num_intervals));
+        localized_params.force_mode = compute_force_values(grid);
     }
 
-    return localized_params;
+    Eigen::MatrixXd step_matrix = assemble_step_matrix(localized_params, grid);
+
+    // 6. Return Immutable Prepared System
+    return PreparedSystem{
+        std::move(step_matrix),                     // The assembled M matrix
+        compute_initial_state(starting_index),      // The starting vector u0
+        std::move(grid),                            // The spatial mesh
+        std::move(localized_params)                 // The finalized settings
+    };
+}
+
+SchemerRunner SchemerBuilder::build() const {
+    return SchemerRunner(build_system());
 }
