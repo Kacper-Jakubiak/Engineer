@@ -1,3 +1,8 @@
+/**
+ * @file Schemer.cpp
+ * @brief Implementation of the Schemer solver class.
+ */
+
 #include "../include/Schemer.h"
 #include <iostream>
 #include <ostream>
@@ -19,10 +24,10 @@ void Schemer::log(std::ostream &os, const double progress_percent) {
     const auto time = std::chrono::system_clock::to_time_t(now);
 
     os << '['
-            << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S")
-            << "] Progress: "
-            << progress_percent
-            << "%" << std::endl;
+       << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S")
+       << "] Progress: "
+       << progress_percent
+       << "%" << std::endl;
 }
 
 void Schemer::save_parameters(std::ostream &os) const {
@@ -51,7 +56,7 @@ void Schemer::save_parameters(std::ostream &os) const {
             break;
         }
         case ForceType::Force: {
-            const auto &force_vector = std::get<std::vector<double> >(params.force_mode);
+            const auto &force_vector = std::get<std::vector<double>>(params.force_mode);
             os << '#' << "force_mode: ";
             for (const double force_value: force_vector)
                 os << force_value << params.delimiter;
@@ -67,7 +72,6 @@ void Schemer::save_parameters(std::ostream &os) const {
         os << position << params.delimiter;
     }
     os << std::endl;
-
 }
 
 void Schemer::save_current_values(std::ostream &os) const {
@@ -123,7 +127,6 @@ void Schemer::run(const int steps, std::ostream *history_stream, const int save_
     if (should_log_progress)
         log(log_stream, 100.0);
 }
-
 
 void Schemer::save_result(const std::string &filepath) const {
     std::ofstream out_stream(filepath);

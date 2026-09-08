@@ -76,7 +76,7 @@ private:
     [[nodiscard]] Eigen::Index compute_starting_index() const;
 
     /**
-     * @brief Creates the starting value list.
+     * @brief Creates the starting vector of probabilities.
      * @param starting_index The grid spot for zero position.
      * @return Eigen::VectorXd The starting values.
      */
