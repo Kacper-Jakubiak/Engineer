@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Engineer main.cpp
         include/Params.h
-        include/Grid1D.h
+        include/Grid.h
         include/PreparedSystem.h
 
         include/SchemerBuilder.h

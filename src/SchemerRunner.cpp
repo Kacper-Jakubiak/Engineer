@@ -31,7 +31,7 @@ void SchemerRunner::log(std::ostream &os, const double progress_percent) {
 
 void SchemerRunner::save_parameters(std::ostream &os) const {
     const Params& params = system.params;
-    const Grid1D& grid = system.grid;
+    const Grid& grid = system.grid;
 
     os << '#' << "alpha: " << params.alpha << '\n';
     os << '#' << "beta: " << params.beta << '\n';

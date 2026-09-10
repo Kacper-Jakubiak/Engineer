@@ -91,7 +91,7 @@ Eigen::VectorXd SchemerBuilder::compute_initial_state(const Eigen::Index startin
     return starting_values;
 }
 
-std::vector<double> SchemerBuilder::compute_force_values(const Grid1D& grid) const {
+std::vector<double> SchemerBuilder::compute_force_values(const Grid& grid) const {
     std::vector<double> force_values;
 
     switch (force_type) {
@@ -125,8 +125,8 @@ std::vector<double> SchemerBuilder::compute_force_values(const Grid1D& grid) con
     return force_values;
 }
 
-Grid1D SchemerBuilder::build_grid(const Eigen::Index starting_index, const double dx) const {
-    Grid1D grid;
+Grid SchemerBuilder::build_grid(const Eigen::Index starting_index, const double dx) const {
+    Grid grid;
     grid.size = params.num_intervals + 1;
     grid.dx = dx;
     grid.starting_index = starting_index;
@@ -138,7 +138,7 @@ Grid1D SchemerBuilder::build_grid(const Eigen::Index starting_index, const doubl
     return grid;
 }
 
-Eigen::MatrixXd SchemerBuilder::assemble_step_matrix(const Params &local_params, const Grid1D &grid) const {
+Eigen::MatrixXd SchemerBuilder::assemble_step_matrix(const Params &local_params, const Grid &grid) const {
     const FractionalScheme fractional_scheme{local_params, grid};
 
     Eigen::MatrixXd diffusion_matrix = fractional_scheme.build_diffusion_matrix();
@@ -164,7 +164,7 @@ PreparedSystem SchemerBuilder::build_system() const {
     const Eigen::Index starting_index = compute_starting_index();
     const double dx = params.length / static_cast<double>(params.num_intervals);
 
-    Grid1D grid = build_grid(starting_index, dx);
+    Grid grid = build_grid(starting_index, dx);
 
     if (force_type != ForceType::Drift) {
         localized_params.force_mode = compute_force_values(grid);

@@ -7,7 +7,7 @@
 
 #include "SchemerRunner.h"
 #include "Params.h"
-#include "Grid1D.h"
+#include "Grid.h"
 #include <Eigen/Dense>
 #include <functional>
 #include <vector>
@@ -90,11 +90,11 @@ private:
      * @param grid
      * @return std::vector<double> List of calculated force values.
      */
-    [[nodiscard]] std::vector<double> compute_force_values(const Grid1D &grid) const;
+    [[nodiscard]] std::vector<double> compute_force_values(const Grid &grid) const;
 
-    [[nodiscard]] Grid1D build_grid(Eigen::Index starting_index, double dx) const;
+    [[nodiscard]] Grid build_grid(Eigen::Index starting_index, double dx) const;
 
-    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const Params &local_params, const Grid1D &grid) const;
+    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const Params &local_params, const Grid &grid) const;
 
 public:
     /**
