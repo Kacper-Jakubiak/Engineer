@@ -39,7 +39,7 @@ SchemerBuilder &SchemerBuilder::set_drift(const double value) {
 
 SchemerBuilder &SchemerBuilder::set_force(std::vector<double> value) {
     // Warn if replacing an existing drift setting
-    if (force_type == ForceType::Drift) {
+    if (force_type == ForceType::Drift && drift_value != 0.0) {
         std::cerr << "[WARNING]: drift was previously set. Force vector will be used instead\n";
     }
     force_vector = std::move(value);
@@ -50,7 +50,7 @@ SchemerBuilder &SchemerBuilder::set_force(std::vector<double> value) {
 
 SchemerBuilder &SchemerBuilder::set_force(std::function<double(double)> value) {
     // Warn if replacing an existing drift setting
-    if (force_type == ForceType::Drift) {
+    if (force_type == ForceType::Drift && drift_value != 0.0) {
         std::cerr << "[WARNING]: drift was previously set. Force function will be used instead\n";
     }
     force_function = std::move(value);
