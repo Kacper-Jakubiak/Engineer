@@ -6,8 +6,7 @@
 #pragma once
 
 #include "SchemerRunner.h"
-#include "Params.h"
-#include "Grid.h"
+#include "Config.h"
 #include <Eigen/Dense>
 #include <functional>
 #include <vector>
@@ -53,7 +52,7 @@ private:
         Vector     ///< A list of force values for each grid point.
     };
 
-    Params params; /// Stores the settings.
+    Config config; /// Stores the settings.
 
     InitialType initialization_type = InitialType::Dirac; /// Selected starting condition type.
     Eigen::VectorXd initial_vector;                        /// Custom list of starting values.
@@ -63,6 +62,7 @@ private:
     double zero_distance = 0.0;             /// Distance offset for zero location.
 
     ForceType force_type = ForceType::Drift;        /// Selected force type.
+    double drift_value = 0.0;
     std::function<double(double)> force_function;   /// Function that calculates force at a position.
     std::vector<double> force_vector;               /// List of force values.
 
@@ -87,14 +87,11 @@ private:
 
     /**
      * @brief Calculates the force at each grid point.
-     * @param grid
-     * @return std::vector<double> List of calculated force values.
+     * @return std::variant<double, std::vector<double>> List of calculated force values.
      */
-    [[nodiscard]] std::vector<double> compute_force_values(const Grid &grid) const;
+    [[nodiscard]] std::variant<double, std::vector<double>> compute_force(Eigen::Index starting_index) const;
 
-    [[nodiscard]] Grid build_grid(Eigen::Index starting_index, double dx) const;
-
-    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const Params &local_params, const Grid &grid) const;
+    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const std::variant<double, std::vector<double>>& force_mode) const;
 
 public:
     /**
@@ -223,21 +220,11 @@ public:
     SchemerBuilder &set_zero_middle();
 
     /**
-     * @brief Sets all parameters at once using an existing Params object.
-     * @param value Pre-made Params object.
-     * @return SchemerBuilder& Reference to this builder.
-     */
-    SchemerBuilder &set_params(const Params &value);
-
-    /**
      * @brief Checks options and creates the final Schemer object.
      * @return Schemer Built Schemer solver object.
      */
     [[nodiscard]] SchemerRunner build() const;
 
-    /**
-     * @brief Checks options and creates the Params object.
-     * @return Params Built Params object.
-     */
-    [[nodiscard]] PreparedSystem build_system() const;
+
+    [[nodiscard]] RunnerSetup build_setup() const;
 };

@@ -7,7 +7,7 @@
 
 #include <Eigen/Dense>
 #include <string>
-#include "PreparedSystem.h"
+#include "RunnerSetup.h"
 
 /**
  * @class SchemerRunner
@@ -18,9 +18,9 @@ private:
     /// File to save progress logs.
     static constexpr std::string_view LOG_FILE_PATH = "progress.log";
 
-    const PreparedSystem system;                   ///< Saved settings.
+    RunnerSetup system;                 ///< Saved settings.
     int steps_taken = 0;                   ///< Number of time steps done.
-    Eigen::VectorXd current_values;///< Current values on the grid.
+    Eigen::VectorXd current_values;        ///< Current values on the grid.
 
     /**
      * @brief Prints progress to a stream.
@@ -46,10 +46,15 @@ public:
      * @brief Creates a Schemer object with given settings and starting values.
      * @param system
      */
-    explicit SchemerRunner(PreparedSystem system);
+    explicit SchemerRunner(RunnerSetup system);
 
-    /// Default destructor.
     ~SchemerRunner() = default;
+
+    SchemerRunner(const SchemerRunner&) = default;
+    SchemerRunner& operator=(const SchemerRunner&) = default;
+
+    SchemerRunner(SchemerRunner&&) = default;
+    SchemerRunner& operator=(SchemerRunner&&) = default;
 
     /**
      * @brief Resets the simulation back to the start (time zero).

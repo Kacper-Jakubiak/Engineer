@@ -4,9 +4,8 @@ project(Engineer)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Engineer main.cpp
-        include/Params.h
-        include/Grid.h
-        include/PreparedSystem.h
+        include/Config.h
+        include/RunnerSetup.h
 
         include/SchemerBuilder.h
         include/SchemerRunner.h

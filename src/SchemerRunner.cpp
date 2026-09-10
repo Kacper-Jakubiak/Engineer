@@ -12,9 +12,9 @@
 #include <chrono>
 #include <iomanip>
 
-#include "../include/PreparedSystem.h"
+#include "../include/RunnerSetup.h"
 
-SchemerRunner::SchemerRunner(PreparedSystem system) : system(std::move(system)) {
+SchemerRunner::SchemerRunner(RunnerSetup system) : system(std::move(system)) {
     reset();
 }
 
@@ -30,48 +30,49 @@ void SchemerRunner::log(std::ostream &os, const double progress_percent) {
 }
 
 void SchemerRunner::save_parameters(std::ostream &os) const {
-    const Params& params = system.params;
-    const Grid& grid = system.grid;
+    const auto& config = system.config;
 
-    os << '#' << "alpha: " << params.alpha << '\n';
-    os << '#' << "beta: " << params.beta << '\n';
-    os << '#' << "sigma: " << params.sigma << '\n';
-    os << '#' << "length: " << params.length << '\n';
+    os << '#' << "alpha: " << config.alpha << '\n';
+    os << '#' << "beta: " << config.beta << '\n';
+    os << '#' << "sigma: " << config.sigma << '\n';
+    os << '#' << "length: " << config.length << '\n';
 
-    os << '#' << "dt: " << params.dt << '\n';
-    os << '#' << "num_intervals: " << params.num_intervals << '\n';
-    os << '#' << "theta: " << params.theta << '\n';
+    os << '#' << "dt: " << config.dt << '\n';
+    os << '#' << "num_intervals: " << config.num_intervals << '\n';
+    os << '#' << "theta: " << config.theta << '\n';
 
-    os << '#' << "delimiter: " << params.delimiter << '\n';
-    os << '#' << "log_interval_percent: " << params.log_interval_percent << '\n';
-    os << '#' << "verbose: " << params.verbose << '\n';
+    os << '#' << "delimiter: " << config.delimiter << '\n';
+    os << '#' << "log_interval_percent: " << config.log_interval_percent << '\n';
+    os << '#' << "verbose: " << config.verbose << '\n';
 
     os << '#' << "initial_values: ";
     for (Eigen::Index i = 0; i < system.initial_state.size(); i++)
-        os << system.initial_state(i) << params.delimiter;
+        os << system.initial_state(i) << config.delimiter;
     os << '\n';
 
     os << '#' << "force_mode: ";
 
-    if (std::holds_alternative<double>(params.force_mode)) {
-        os << std::get<double>(params.force_mode) << '\n';
+    if (std::holds_alternative<double>(system.force_mode)) {
+        os << std::get<double>(system.force_mode) << '\n';
     } else {
-        for (const double force_value : std::get<std::vector<double>>(params.force_mode)) {
-            os << force_value << params.delimiter;
+        for (const double force_value : std::get<std::vector<double>>(system.force_mode)) {
+            os << force_value << config.delimiter;
         }
         os << '\n';
     }
 
     os << '#' << "x_coordinates: ";
-    for (const double position: grid.coordinates) {
-        os << position << params.delimiter;
+    auto coords = config.get_coordinates(system.starting_index);
+    for (const double position: coords) {
+        os << position << config.delimiter;
     }
     os << std::endl;
 }
 
 void SchemerRunner::save_current_values(std::ostream &os) const {
+    const auto& delimiter = system.config.delimiter;
     for (Eigen::Index i = 0; i < current_values.size(); i++)
-        os << current_values(i) << system.params.delimiter;
+        os << current_values(i) << delimiter;
     os << std::endl;
 }
 
@@ -95,7 +96,7 @@ void SchemerRunner::run(const int steps, std::ostream *history_stream, const int
     }
 
     std::ofstream log_stream;
-    bool should_log_progress = system.params.log_interval_percent > 0;
+    bool should_log_progress = system.config.log_interval_percent > 0;
     if (should_log_progress) {
         log_stream.open(LOG_FILE_PATH.data());
         if (!log_stream) {
@@ -103,7 +104,7 @@ void SchemerRunner::run(const int steps, std::ostream *history_stream, const int
             should_log_progress = false;
         }
     }
-    const int log_interval = std::max(1, static_cast<int>(steps * system.params.log_interval_percent / 100.0));
+    const int log_interval = std::max(1, static_cast<int>(steps * system.config.log_interval_percent / 100.0));
 
     for (int step = 0; step < steps; step++) {
         if (should_log_progress && step % log_interval == 0)
@@ -131,6 +132,6 @@ void SchemerRunner::save_result(const std::string &filepath) const {
     save_parameters(out_stream);
     out_stream << '#' << "steps: " << steps_taken << std::endl;
     save_current_values(out_stream);
-    if (system.params.verbose > 0)
+    if (system.config.verbose > 0)
         std::cout << "Saved to " << filepath << std::endl;
 }
