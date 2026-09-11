@@ -1,3 +1,8 @@
+/**
+ * @file SchemerBuilder_setters.cpp
+ * @brief Setter methods for builder configuration.
+ */
+
 #include <iostream>
 #include <utility>
 

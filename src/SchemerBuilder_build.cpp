@@ -1,3 +1,8 @@
+/**
+ * @file SchemerBuilder_build.cpp
+ * @brief Build and validation logic for the solver.
+ */
+
 #include "../include/SchemerBuilder.h"
 #include <iostream>
 #include <fstream>
@@ -137,17 +142,13 @@ Eigen::MatrixXd SchemerBuilder::assemble_step_matrix(const std::variant<double, 
 }
 
 RunnerSetup SchemerBuilder::build_setup() const {
-    // 1. Validate all inputs
     validate_parameters();
 
-    // 2. Resolve spatial variables (starting_index)
     const Eigen::Index starting_index = compute_starting_index();
 
-    // 3. Finalize force configuration
     auto force_mode = compute_force(starting_index);
     auto initial_state = compute_initial_state(starting_index);
 
-    //4.
     Eigen::MatrixXd step_matrix = assemble_step_matrix(force_mode);
 
     return RunnerSetup{

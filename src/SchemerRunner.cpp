@@ -1,6 +1,6 @@
 /**
- * @file Schemer.cpp
- * @brief Implementation of the Schemer solver class.
+ * @file SchemerRunner.cpp
+ * @brief Simulation execution and result saving.
  */
 
 #include "../include/SchemerRunner.h"
