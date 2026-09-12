@@ -12,9 +12,9 @@
 #include <chrono>
 #include <iomanip>
 
-#include "../include/RunnerSetup.h"
+#include "../include/SimulationSetup.h"
 
-SchemerRunner::SchemerRunner(RunnerSetup system) : system(std::move(system)) {
+SchemerRunner::SchemerRunner(SimulationSetup system) : system(std::move(system)) {
     reset();
 }
 
@@ -50,12 +50,12 @@ void SchemerRunner::save_parameters(std::ostream &os) const {
         os << system.initial_state(i) << config.delimiter;
     os << '\n';
 
-    os << '#' << "force_mode: ";
+    os << '#' << "force_variant: ";
 
-    if (std::holds_alternative<double>(system.force_mode)) {
-        os << std::get<double>(system.force_mode) << '\n';
+    if (std::holds_alternative<double>(system.force_variant)) {
+        os << std::get<double>(system.force_variant) << '\n';
     } else {
-        for (const double force_value : std::get<std::vector<double>>(system.force_mode)) {
+        for (const double force_value : std::get<std::vector<double>>(system.force_variant)) {
             os << force_value << config.delimiter;
         }
         os << '\n';

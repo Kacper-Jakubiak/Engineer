@@ -7,7 +7,7 @@
 
 #include <Eigen/Dense>
 #include <string>
-#include "RunnerSetup.h"
+#include "SimulationSetup.h"
 
 /**
  * @class SchemerRunner
@@ -20,7 +20,7 @@ private:
     /// File for progress logs
     static constexpr std::string_view LOG_FILE_PATH = "progress.log";
 
-    RunnerSetup system;
+    SimulationSetup system;
     int steps_taken = 0;
     Eigen::VectorXd current_values;
 
@@ -48,7 +48,7 @@ public:
      * @brief Create a simulation runner.
      * @param system Setup with configuration and matrices.
      */
-    explicit SchemerRunner(RunnerSetup system);
+    explicit SchemerRunner(SimulationSetup system);
 
     ~SchemerRunner() = default;
 

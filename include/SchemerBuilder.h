@@ -21,44 +21,44 @@
 class SchemerBuilder {
 private:
     /**
-     * @enum ZeroType
+     * @enum ZeroIndexEnum
      * @brief How to set the starting position on the grid.
      */
-    enum class ZeroType {
+    enum class ZeroIndexEnum {
         Middle,   ///< Center of grid
         Index,    ///< Specific grid position
         Distance  ///< Position by distance
     };
 
     /**
-     * @enum InitialType
+     * @enum InitialValuesEnum
      * @brief Type of starting values.
      */
-    enum class InitialType {
+    enum class InitialValuesEnum {
         Dirac,   ///< Single point
         Vector,  ///< Custom values
     };
 
     /**
-     * @enum ForceType
+     * @enum ForceTypeEnum
      * @brief Type of force applied.
      */
-    enum class ForceType {
+    enum class ForceTypeEnum {
         Drift,     ///< Constant force
         Function,  ///< Force from function
         Vector     ///< Force values
     };
 
-    Config config;
+    Config inner_config;
 
-    InitialType initialization_type = InitialType::Dirac;
+    InitialValuesEnum initial_values_type = InitialValuesEnum::Dirac;
     Eigen::VectorXd initial_vector;
 
-    ZeroType zero_type = ZeroType::Middle;
+    ZeroIndexEnum zero_index_type = ZeroIndexEnum::Middle;
     Eigen::Index zero_index = -1;
     double zero_distance = 0.0;
 
-    ForceType force_type = ForceType::Drift;
+    ForceTypeEnum force_type = ForceTypeEnum::Drift;
     double drift_value = 0.0;
     std::function<double(double)> force_function;
     std::vector<double> force_vector;
@@ -90,10 +90,10 @@ private:
 
     /**
      * @brief Build time-stepping matrix.
-     * @param force_mode Force specification.
+     * @param force_variant Force specification.
      * @return Eigen::MatrixXd The matrix.
      */
-    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const std::variant<double, std::vector<double>>& force_mode) const;
+    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const std::variant<double, std::vector<double>>& force_variant) const;
 
 public:
     /**
@@ -209,7 +209,7 @@ public:
     SchemerBuilder &set_zero_index(Eigen::Index value);
 
     /**
-     * @brief Set starting position by distance form left side of the grid.
+     * @brief Set starting position by distance from left side of the grid.
      * @param value Distance value.
      * @return SchemerBuilder& This builder.
      */
@@ -231,5 +231,5 @@ public:
      * @brief Get prepared setup.
      * @return RunnerSetup The setup.
      */
-    [[nodiscard]] RunnerSetup build_setup() const;
+    [[nodiscard]] SimulationSetup build_setup() const;
 };

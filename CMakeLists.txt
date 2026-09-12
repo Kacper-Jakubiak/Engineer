@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Engineer main.cpp
         include/Config.h
-        include/RunnerSetup.h
+        include/SimulationSetup.h
 
         include/SchemerBuilder.h
         include/SchemerRunner.h

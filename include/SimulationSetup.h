@@ -1,5 +1,5 @@
 /**
- * @file RunnerSetup.h
+ * @file SimulationSetup.h
  * @brief Prepared simulation setup.
  */
 
@@ -10,12 +10,12 @@
 #include <vector>
 
 /**
- * @struct RunnerSetup
+ * @struct SimulationSetup
  * @brief Complete setup ready to run.
  *
  * Contains all information needed to execute a simulation.
  */
-struct RunnerSetup {
+struct SimulationSetup {
     /// Settings for the simulation
     Config config;
 
@@ -29,5 +29,5 @@ struct RunnerSetup {
     Eigen::Index starting_index;
 
     /// Force type: constant value or per-point values
-    std::variant<double, std::vector<double>> force_mode;
+    std::variant<double, std::vector<double>> force_variant;
 };

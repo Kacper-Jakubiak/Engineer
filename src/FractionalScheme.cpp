@@ -13,11 +13,11 @@ FractionalScheme::FractionalScheme(const Config& config) : config(config) {
     n = std::ceil(alpha);
 
     cauchyOmega = config.sigma * config.dt / (dx * std::numbers::pi);
-    omega = config.sigma * config.dt / (std::tgamma(n + 1 - alpha) * pow(dx, alpha));
 
+    const double omega = config.sigma * config.dt / (std::tgamma(n + 1 - alpha) * pow(dx, alpha));
     const double denominator = 2.0 * std::cos(std::numbers::pi * alpha / 2.0);
-    L = -(1.0 + config.beta) / denominator;
-    R = -(1.0 - config.beta) / denominator;
+    L_omega = -omega * (1.0 + config.beta) / denominator;
+    R_omega = -omega * (1.0 - config.beta) / denominator;
 }
 
 
@@ -38,13 +38,12 @@ Eigen::MatrixXd FractionalScheme::build_M1() const {
     const auto lambda = get_lambdas();
 
     const double v0 = lambda[1];
-    M.diagonal().setConstant(-1.0 * (L + R) * omega * v0);
+    M.diagonal().setConstant(-1.0 * (L_omega + R_omega) * v0);
 
     for (Eigen::Index i = 1; i < grid_size; i++) {
         double value = lambda[i] - lambda[i + 1];
-        value *= omega;
-        M.diagonal(-i).setConstant(value * L);
-        M.diagonal(i).setConstant(value * R);
+        M.diagonal(-i).setConstant(value * L_omega);
+        M.diagonal(i).setConstant(value * R_omega);
     }
 
     return M;
@@ -57,18 +56,17 @@ Eigen::MatrixXd FractionalScheme::build_M2() const {
     const auto lambda = get_lambdas();
 
     double v0 = lambda[2] - 2.0 * lambda[1];
-    M.diagonal().setConstant(-1.0 * (L + R) * omega * v0);
+    M.diagonal().setConstant(-1.0 * (L_omega + R_omega) * v0);
 
     double v1 = lambda[3] - 2 * lambda[2] + lambda[1];
     double v2 = lambda[1];
-    M.diagonal(-1).setConstant(-1.0 * (L * omega * v1 + R * omega * v2));
-    M.diagonal(1).setConstant(-1.0 * (R * omega * v1 + L * omega * v2));
+    M.diagonal(-1).setConstant(-1.0 * (L_omega * v1 + R_omega * v2));
+    M.diagonal(1).setConstant(-1.0 * (R_omega * v1 + L_omega * v2));
 
     for (Eigen::Index i = 2; i < grid_size; i++) {
         double value = lambda[i + 2] - 2 * lambda[i + 1] + lambda[i];
-        value *= omega;
-        M.diagonal(-i).setConstant(-1.0 * value * L);
-        M.diagonal(i).setConstant(-1.0 * value * R);
+        M.diagonal(-i).setConstant(-1.0 * value * L_omega);
+        M.diagonal(i).setConstant(-1.0 * value * R_omega);
     }
 
     return M;
@@ -143,9 +141,9 @@ Eigen::MatrixXd FractionalScheme::build_diffusion_matrix() const {
     return build_M2();
 }
 
-Eigen::MatrixXd FractionalScheme::build_force_matrix(const std::variant<double, std::vector<double>>& force_mode) const {
-    if (std::holds_alternative<double>(force_mode)) {
-        return build_drift(std::get<double>(force_mode));
+Eigen::MatrixXd FractionalScheme::build_force_matrix(const std::variant<double, std::vector<double>>& force_variant) const {
+    if (std::holds_alternative<double>(force_variant)) {
+        return build_drift(std::get<double>(force_variant));
     }
-    return build_force(std::get<std::vector<double>>(force_mode));
+    return build_force(std::get<std::vector<double>>(force_variant));
 }

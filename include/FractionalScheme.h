@@ -35,17 +35,16 @@ public:
 
     /**
      * @brief Build the force matrix.
-     * @param force_mode Either constant force or force per grid point.
+     * @param force_variant Either constant force or force per grid point.
      * @return Eigen::MatrixXd The force matrix.
      */
-    [[nodiscard]] Eigen::MatrixXd build_force_matrix(const std::variant<double, std::vector<double>>& force_mode) const;
+    [[nodiscard]] Eigen::MatrixXd build_force_matrix(const std::variant<double, std::vector<double>>& force_variant) const;
 
 private:
     const Config& config;
 
-    double L;
-    double R;
-    double omega;
+    double L_omega;
+    double R_omega;
     double cauchyOmega;
     double n;
 
