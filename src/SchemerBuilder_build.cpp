@@ -97,7 +97,7 @@ Eigen::VectorXd SchemerBuilder::compute_initial_state(const Eigen::Index startin
     return starting_values;
 }
 
-std::variant<double, std::vector<double>> SchemerBuilder::compute_force(const Eigen::Index starting_index) const {
+std::variant<double, std::vector<double>> SchemerBuilder::compute_force_variant(const Eigen::Index starting_index) const {
     switch (force_type) {
         case ForceTypeEnum::Drift:
             return drift_value;
@@ -125,7 +125,7 @@ std::variant<double, std::vector<double>> SchemerBuilder::compute_force(const Ei
     }
 }
 
-Eigen::MatrixXd SchemerBuilder::assemble_step_matrix(const std::variant<double, std::vector<double>>& force_variant) const {
+Eigen::MatrixXd SchemerBuilder::compute_step_matrix(const std::variant<double, std::vector<double>>& force_variant) const {
     const FractionalScheme fractional_scheme{inner_config};
 
     const Eigen::MatrixXd diffusion_matrix = fractional_scheme.build_diffusion_matrix();
@@ -146,10 +146,10 @@ SimulationSetup SchemerBuilder::build_setup() const {
 
     const Eigen::Index starting_index = compute_starting_index();
 
-    auto force_variant = compute_force(starting_index);
+    auto force_variant = compute_force_variant(starting_index);
     auto initial_state = compute_initial_state(starting_index);
 
-    Eigen::MatrixXd step_matrix = assemble_step_matrix(force_variant);
+    Eigen::MatrixXd step_matrix = compute_step_matrix(force_variant);
 
     return SimulationSetup{
         inner_config,

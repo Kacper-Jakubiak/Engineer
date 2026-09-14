@@ -86,14 +86,14 @@ private:
      * @param starting_index Starting position.
      * @return Force specification.
      */
-    [[nodiscard]] std::variant<double, std::vector<double>> compute_force(Eigen::Index starting_index) const;
+    [[nodiscard]] std::variant<double, std::vector<double>> compute_force_variant(Eigen::Index starting_index) const;
 
     /**
      * @brief Build time-stepping matrix.
      * @param force_variant Force specification.
      * @return Eigen::MatrixXd The matrix.
      */
-    [[nodiscard]] Eigen::MatrixXd assemble_step_matrix(const std::variant<double, std::vector<double>>& force_variant) const;
+    [[nodiscard]] Eigen::MatrixXd compute_step_matrix(const std::variant<double, std::vector<double>>& force_variant) const;
 
 public:
     /**
