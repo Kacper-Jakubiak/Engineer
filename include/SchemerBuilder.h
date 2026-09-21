@@ -1,237 +1,235 @@
 /**
  * @file SchemerBuilder.h
- * @brief Header file for the SchemerBuilder class. Helps create and set up Schemer objects.
+ * @brief Builder for creating simulation solvers.
  */
 
 #pragma once
 
-#include "Schemer.h"
+#include "SchemerRunner.h"
+#include "Config.h"
+#include <Eigen/Dense>
 #include <functional>
 #include <vector>
 
 /**
  * @class SchemerBuilder
- * @brief Builder class to set up and create Schemer objects.
+ * @brief Sets up a simulation step by step.
  *
- * Allows setting physical values, grid options, starting conditions,
- * and forces step-by-step before building the solver.
+ * Use this class to configure all settings and create a solver.
+ * Each method returns this builder so you can chain calls.
  */
 class SchemerBuilder {
 private:
-    /// File path used to save parameter logs.
-    constexpr static std::string_view PARAMETER_LOG_FILE_PATH = "parameters.log";
-
     /**
-     * @enum ZeroType
-     * @brief Options for setting where position zero is on the grid.
+     * @enum ZeroIndexEnum
+     * @brief How to set the starting position on the grid.
      */
-    enum class ZeroType {
-        Middle,   ///< Places zero in the middle of the grid.
-        Index,    ///< Uses a specific grid spot number for zero.
-        Distance  ///< Places zero at a specific distance from the start.
+    enum class ZeroIndexEnum {
+        Middle,   ///< Center of grid
+        Index,    ///< Specific grid position
+        Distance  ///< Position by distance
     };
 
     /**
-     * @enum InitialType
-     * @brief Options for setting the starting conditions.
+     * @enum InitialValuesEnum
+     * @brief Type of starting values.
      */
-    enum class InitialType {
-        Dirac,   ///< Starts with a single point spike (Dirac delta).
-        Vector,  ///< Starts using a list of values from the user.
+    enum class InitialValuesEnum {
+        Dirac,   ///< Single point
+        Vector,  ///< Custom values
     };
 
     /**
-     * @enum ForceType
-     * @brief Options for setting the force applied to the system.
+     * @enum ForceTypeEnum
+     * @brief Type of force applied.
      */
-    enum class ForceType {
-        Drift,     ///< A constant pushing force.
-        Function,  ///< A force calculated by a math function.
-        Vector     ///< A list of force values for each grid point.
+    enum class ForceTypeEnum {
+        Drift,     ///< Constant force
+        Function,  ///< Force from function
+        Vector     ///< Force values
     };
 
-    Params params; /// Stores the settings.
+    Config inner_config;
 
-    InitialType initialization_type = InitialType::Dirac; /// Selected starting condition type.
-    Eigen::VectorXd initial_vector;                        /// Custom list of starting values.
+    InitialValuesEnum initial_values_type = InitialValuesEnum::Dirac;
+    Eigen::VectorXd initial_vector;
 
-    ZeroType zero_type = ZeroType::Middle; /// Selected zero location option.
-    Eigen::Index zero_index = -1;           /// Grid spot number for zero location.
-    double zero_distance = 0.0;             /// Distance offset for zero location.
+    ZeroIndexEnum zero_index_type = ZeroIndexEnum::Middle;
+    Eigen::Index zero_index = -1;
+    double zero_distance = 0.0;
 
-    ForceType force_type = ForceType::Drift;        /// Selected force type.
-    std::function<double(double)> force_function;   /// Function that calculates force at a position.
-    std::vector<double> force_vector;               /// List of force values.
+    ForceTypeEnum force_type = ForceTypeEnum::Drift;
+    double drift_value = 0.0;
+    std::function<double(double)> force_function;
+    std::vector<double> force_vector;
 
     /**
-     * @brief Checks if settings are valid before building.
-     * @throws std::invalid_argument or std::runtime_error if settings are wrong or missing.
+     * @brief Check that all settings are valid.
      */
     void validate_parameters() const;
 
     /**
-     * @brief Finds the grid index where zero is located based on zero_type.
-     * @return Eigen::Index The grid spot for zero.
+     * @brief Find the starting grid position.
+     * @return Eigen::Index Starting position.
      */
     [[nodiscard]] Eigen::Index compute_starting_index() const;
 
     /**
-     * @brief Creates the starting vector of probabilities.
-     * @param starting_index The grid spot for zero position.
-     * @return Eigen::VectorXd The starting values.
+     * @brief Create initial values.
+     * @param starting_index Starting position.
+     * @return Eigen::VectorXd Initial values.
      */
     [[nodiscard]] Eigen::VectorXd compute_initial_state(Eigen::Index starting_index) const;
 
     /**
-     * @brief Calculates the force at each grid point.
-     * @param starting_index The grid spot for zero position.
-     * @param dx Space step size between grid points.
-     * @return std::vector<double> List of calculated force values.
+     * @brief Compute force values.
+     * @param starting_index Starting position.
+     * @return Force specification.
      */
-    [[nodiscard]] std::vector<double> compute_force_values(Eigen::Index starting_index, double dx) const;
+    [[nodiscard]] std::variant<double, std::vector<double>> compute_force_variant(Eigen::Index starting_index) const;
+
+    /**
+     * @brief Build time-stepping matrix.
+     * @param force_variant Force specification.
+     * @return Eigen::MatrixXd The matrix.
+     */
+    [[nodiscard]] Eigen::MatrixXd compute_step_matrix(const std::variant<double, std::vector<double>>& force_variant) const;
 
 public:
     /**
-     * @brief Sets the alpha parameter.
-     * @param value Alpha value.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set alpha parameter.
+     * @param value Parameter value.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_alpha(double value);
 
     /**
-     * @brief Sets the beta parameter.
-     * @param value Beta value.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set beta parameter.
+     * @param value Parameter value.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_beta(double value);
 
     /**
-     * @brief Sets the sigma parameter.
-     * @param value Sigma value.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set sigma parameter.
+     * @param value Parameter value.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_sigma(double value);
 
     /**
-     * @brief Sets the total length of the spatial area.
+     * @brief Set domain size.
      * @param value Length value.
-     * @return SchemerBuilder& Reference to this builder.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_length(double value);
 
     /**
-     * @brief Sets a steady force, equal at each point.
-     * @param value Drift value.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set constant force.
+     * @param value Force value.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_drift(double value);
 
     /**
-     * @brief Sets the force using a list of values for each grid point.
-     * @param value List of force values.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set force from values.
+     * @param value Force for each grid point.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_force(std::vector<double> value);
 
     /**
-     * @brief Sets the force using a function.
-     * @param value A function that takes position and returns the force value.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set force from function.
+     * @param value Function for force.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_force(std::function<double(double)> value);
 
     /**
-     * @brief Sets the time step size (dt).
-     * @param value Time step size.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set time step size.
+     * @param value Step size.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_dt(double value);
 
     /**
-     * @brief Sets the number of grid sections.
-     * @param value Number of grid sections.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set number of grid points.
+     * @param value Number of intervals.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_num_intervals(Eigen::Index value);
 
     /**
-     * @brief Sets the theta parameter for time stepping.
-     * @param value Theta value between 0 and 1.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set theta parameter.
+     * @param value Theta value.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_theta(double value);
 
     /**
-     * @brief Sets verbosity level of the returned solver.
-     * @param value Detail level (higher means more logs).
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set output detail level of the resulting solver.
+     * @param value Verbosity level.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_verbosity(int value);
 
     /**
-     * @brief Sets the character used to separate values in output files.
+     * @brief Set output column separator.
      * @param value Separator string.
-     * @return SchemerBuilder& Reference to this builder.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_delimiter(std::string value);
 
     /**
-     * @brief Sets how often to report progress as a percentage.
-     * @param value Progress percent step.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set progress log frequency.
+     * @param value Percentage (%).
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_log_interval_percent(double value);
 
     /**
-     * @brief Sets starting values using an Eigen vector.
-     * @param value List of starting values.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set initial values from Eigen vector.
+     * @param value Initial values.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_initial_conditions(const Eigen::VectorXd &value);
 
     /**
-     * @brief Sets starting values using a standard std::vector.
-     * @param value List of starting values.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set initial values from std vector.
+     * @param value Initial values.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_initial_conditions(const std::vector<double> &value);
 
     /**
-     * @brief Sets where zero is located using an index.
-     * @param value Grid index for zero location.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set starting position by grid index.
+     * @param value Grid index.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_zero_index(Eigen::Index value);
 
     /**
-     * @brief Sets where zero is located using a distance offset.
-     * @param value Distance for zero location from the start of the grid.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set starting position by distance from left side of the grid.
+     * @param value Distance value.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_zero_distance(double value);
 
     /**
-     * @brief Places zero directly in the middle of the domain grid.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Set starting position to center.
+     * @return SchemerBuilder& This builder.
      */
     SchemerBuilder &set_zero_middle();
 
     /**
-     * @brief Sets all parameters at once using an existing Params object.
-     * @param value Pre-made Params object.
-     * @return SchemerBuilder& Reference to this builder.
+     * @brief Create solver with current settings.
+     * @return SchemerRunner Ready solver.
      */
-    SchemerBuilder &set_params(const Params &value);
+    [[nodiscard]] SchemerRunner build() const;
 
     /**
-     * @brief Checks options and creates the final Schemer object.
-     * @return Schemer Built Schemer solver object.
+     * @brief Get prepared setup.
+     * @return RunnerSetup The setup.
      */
-    [[nodiscard]] Schemer build() const;
-
-    /**
-     * @brief Checks options and creates the Params object.
-     * @return Params Built Params object.
-     */
-    [[nodiscard]] Params build_params() const;
+    [[nodiscard]] SimulationSetup build_setup() const;
 };
