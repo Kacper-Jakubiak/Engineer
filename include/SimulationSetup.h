@@ -1,9 +1,10 @@
 /**
- * @file SimulationSetup.h
- * @brief Prepared simulation setup.
+* @file SimulationSetup.h
+ * @brief Defines the complete setup structure needed to run a simulation.
  */
 
 #pragma once
+
 #include "Config.h"
 #include <Eigen/Dense>
 #include <variant>
@@ -11,23 +12,37 @@
 
 /**
  * @struct SimulationSetup
- * @brief Complete setup ready to run.
+ * @brief Holds all pre-calculated matrices, initial conditions, and configuration settings.
  *
- * Contains all information needed to execute a simulation.
+ * Packs together everything required by the simulation runner to advance time steps,
+ * including solver settings, initial grid values, step matrices, and external forces.
  */
 struct SimulationSetup {
-    /// Settings for the simulation
+    /**
+     * @brief Configuration settings including physical parameters, time steps, and grid details.
+     */
     Config config;
 
-    /// Pre-computed operation matrix for time stepping
+    /**
+     * @brief Pre-calculated system matrix used to compute each step forward in time.
+     */
     Eigen::MatrixXd step_matrix;
 
-    /// Initial values for all grid points
+    /**
+     * @brief Starting values for all physical points across the spatial grid at time $t = 0$.
+     */
     Eigen::VectorXd initial_state;
 
-    /// Starting position on the grid
+    /**
+     * @brief Grid point index corresponding to position $x = 0.0$.
+     */
     Eigen::Index starting_index;
 
-    /// Force type: constant value or per-point values
+    /**
+     * @brief External force acting on the system.
+     *
+     * Holds either a single constant value applied everywhere (`double`) or
+     * individual force values for each grid point (`std::vector<double>`).
+     */
     std::variant<double, std::vector<double>> force_variant;
 };

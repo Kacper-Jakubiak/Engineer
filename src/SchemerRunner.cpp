@@ -14,7 +14,7 @@
 
 #include "../include/SimulationSetup.h"
 
-SchemerRunner::SchemerRunner(SimulationSetup system) : system(std::move(system)) {
+SchemerRunner::SchemerRunner(SimulationSetup setup) : setup(std::move(setup)) {
     reset();
 }
 
@@ -30,7 +30,7 @@ void SchemerRunner::log(std::ostream &os, const double progress_percent) {
 }
 
 void SchemerRunner::save_parameters(std::ostream &os) const {
-    const auto& config = system.config;
+    const auto& config = setup.config;
 
     os << '#' << "alpha: " << config.alpha << '\n';
     os << '#' << "beta: " << config.beta << '\n';
@@ -46,23 +46,23 @@ void SchemerRunner::save_parameters(std::ostream &os) const {
     os << '#' << "verbose: " << config.verbose << '\n';
 
     os << '#' << "initial_values: ";
-    for (Eigen::Index i = 0; i < system.initial_state.size(); i++)
-        os << system.initial_state(i) << config.delimiter;
+    for (Eigen::Index i = 0; i < setup.initial_state.size(); i++)
+        os << setup.initial_state(i) << config.delimiter;
     os << '\n';
 
     os << '#' << "force_variant: ";
 
-    if (std::holds_alternative<double>(system.force_variant)) {
-        os << std::get<double>(system.force_variant) << '\n';
+    if (std::holds_alternative<double>(setup.force_variant)) {
+        os << std::get<double>(setup.force_variant) << '\n';
     } else {
-        for (const double force_value : std::get<std::vector<double>>(system.force_variant)) {
+        for (const double force_value : std::get<std::vector<double>>(setup.force_variant)) {
             os << force_value << config.delimiter;
         }
         os << '\n';
     }
 
     os << '#' << "x_coordinates: ";
-    auto coords = config.get_coordinates(system.starting_index);
+    auto coords = config.get_coordinates(setup.starting_index);
     for (const double position: coords) {
         os << position << config.delimiter;
     }
@@ -70,14 +70,14 @@ void SchemerRunner::save_parameters(std::ostream &os) const {
 }
 
 void SchemerRunner::save_current_values(std::ostream &os) const {
-    const auto& delimiter = system.config.delimiter;
+    const auto& delimiter = setup.config.delimiter;
     for (Eigen::Index i = 0; i < current_values.size(); i++)
         os << current_values(i) << delimiter;
     os << std::endl;
 }
 
 void SchemerRunner::reset() {
-    current_values = system.initial_state;
+    current_values = setup.initial_state;
     steps_taken = 0;
 }
 
@@ -96,7 +96,7 @@ void SchemerRunner::run(const int steps, std::ostream *history_stream, const int
     }
 
     std::ofstream log_stream;
-    bool should_log_progress = system.config.log_interval_percent > 0;
+    bool should_log_progress = setup.config.log_interval_percent > 0;
     if (should_log_progress) {
         log_stream.open(LOG_FILE_PATH.data());
         if (!log_stream) {
@@ -104,7 +104,7 @@ void SchemerRunner::run(const int steps, std::ostream *history_stream, const int
             should_log_progress = false;
         }
     }
-    const int log_interval = std::max(1, static_cast<int>(steps * system.config.log_interval_percent / 100.0));
+    const int log_interval = std::max(1, static_cast<int>(steps * setup.config.log_interval_percent / 100.0));
 
     for (int step = 0; step < steps; step++) {
         if (should_log_progress && step % log_interval == 0)
@@ -113,7 +113,7 @@ void SchemerRunner::run(const int steps, std::ostream *history_stream, const int
         if (should_log_history && step % save_every == 0)
             save_current_values(*history_stream);
 
-        current_values = system.step_matrix * current_values;
+        current_values = setup.step_matrix * current_values;
         steps_taken++;
     }
 
@@ -132,6 +132,6 @@ void SchemerRunner::save_result(const std::string &filepath) const {
     save_parameters(out_stream);
     out_stream << '#' << "steps: " << steps_taken << std::endl;
     save_current_values(out_stream);
-    if (system.config.verbose > 0)
+    if (setup.config.verbose > 0)
         std::cout << "Saved to " << filepath << std::endl;
 }

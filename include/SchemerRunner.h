@@ -1,6 +1,6 @@
 /**
  * @file SchemerRunner.h
- * @brief Runs simulations over time.
+ * @brief Runs time-dependent simulations and manages data output.
  */
 
 #pragma once
@@ -11,44 +11,50 @@
 
 /**
  * @class SchemerRunner
- * @brief Executes simulations.
+ * @brief Manages simulation progress, time stepping, and file saving.
  *
- * Manages simulation state and runs time steps.
+ * Controls the step-by-step execution of the simulation, keeps track of current
+ * state values, and logs progress or saves output data to files.
  */
 class SchemerRunner {
 private:
-    /// File for progress logs
+    /// File path used for writing progress log messages.
     static constexpr std::string_view LOG_FILE_PATH = "progress.log";
 
-    SimulationSetup system;
+    /// Setup used to create this simulation.
+    SimulationSetup setup;
+
+    /// Total number of time steps completed so far.
     int steps_taken = 0;
+
+    /// Values across all grid points at the current time step.
     Eigen::VectorXd current_values;
 
     /**
-     * @brief Log progress to a stream.
-     * @param os Output stream.
-     * @param progress_percent Completion percentage.
+     * @brief Writes current progress percentage to an output stream.
+     * @param os Stream where log messages are written.
+     * @param progress_percent Completion percentage (0 to 100).
      */
     static void log(std::ostream &os, double progress_percent);
 
     /**
-     * @brief Save configuration to a stream.
-     * @param os Output stream.
+     * @brief Writes configuration settings to an output stream.
+     * @param os Stream where parameters are written.
      */
     void save_parameters(std::ostream &os) const;
 
     /**
-     * @brief Save current values to a stream.
-     * @param os Output stream.
+     * @brief Writes current grid values to an output stream.
+     * @param os Stream where current state values are written.
      */
     void save_current_values(std::ostream &os) const;
 
 public:
     /**
-     * @brief Create a simulation runner.
-     * @param system Setup with configuration and matrices.
+     * @brief Creates a simulation runner using a given setup.
+     * @param setup Setup object containing settings, matrices, and initial values.
      */
-    explicit SchemerRunner(SimulationSetup system);
+    explicit SchemerRunner(SimulationSetup setup);
 
     ~SchemerRunner() = default;
 
@@ -59,23 +65,25 @@ public:
     SchemerRunner& operator=(SchemerRunner&&) = default;
 
     /**
-     * @brief Reset to initial state.
+     * @brief Resets the simulation back to step 0 and initial state values.
      */
     void reset();
 
     /**
-     * @brief Run simulation for a number of time steps.
+     * @brief Advances the simulation forward by a specified number of time steps.
      *
-     * @param steps Number of steps to run.
-     * @param history_stream Optional stream to save history (nullptr to skip).
-     * @param save_every Save interval (0 = never).
+     * Steps through time, updates current grid values, logs progress, and
+     * optionally writes history states to a stream at specified step intervals.
+     *
+     * @param steps Total number of time steps to run.
+     * @param history_stream Optional output stream for saving history data (pass nullptr to skip).
+     * @param save_every How often to save state history in steps (set to 0 to skip saving).
      */
     void run(int steps, std::ostream *history_stream = nullptr, int save_every = 0);
 
     /**
-     * @brief Save final result to file.
-     *
-     * @param filepath Path to save file.
+     * @brief Saves the current simulation state and settings to a file.
+     * @param filepath Path to the output file on disk.
      */
     void save_result(const std::string &filepath) const;
 };
