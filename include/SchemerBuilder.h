@@ -21,64 +21,8 @@
  */
 class SchemerBuilder {
 private:
-    /**
-     * @enum ZeroIndexEnum
-     * @brief Method used to position the spatial origin ($x = 0.0$) on the grid.
-     */
-    enum class ZeroIndexEnum {
-        Middle,   ///< Place origin at the exact center of the grid.
-        Index,    ///< Place origin at a specific grid index.
-        Distance  ///< Place origin at a physical distance measured from the left edge.
-    };
-
-    /**
-     * @enum InitialValuesEnum
-     * @brief Type of starting values applied across the grid at $t = 0$.
-     */
-    enum class InitialValuesEnum {
-        Dirac,   ///< Single peak (impulse) at the origin ($x = 0.0$).
-        Vector   ///< Custom starting values provided for all grid points.
-    };
-
-    /**
-     * @enum ForceTypeEnum
-     * @brief Type of external force applied to the system.
-     */
-    enum class ForceTypeEnum {
-        Drift,     ///< Constant force applied uniformly across the domain.
-        Function,  ///< Spatially varying force defined by a function $f(x)$.
-        Vector     ///< Custom force value provided for each grid point.
-    };
-
     /// Internal configuration object storing parameters and grid settings.
     Config inner_config;
-
-    /// Selected type for initial starting values.
-    InitialValuesEnum initial_values_type = InitialValuesEnum::Dirac;
-
-    /// Custom initial values vector across all grid points.
-    Eigen::VectorXd initial_vector;
-
-    /// Selected method for placing origin $x = 0.0$.
-    ZeroIndexEnum zero_index_type = ZeroIndexEnum::Middle;
-
-    /// Explicit grid index chosen for $x = 0.0$.
-    Eigen::Index zero_index = -1;
-
-    /// Distance from the left edge chosen for $x = 0.0$.
-    double zero_distance = 0.0;
-
-    /// Selected force representation type.
-    ForceTypeEnum force_type = ForceTypeEnum::Drift;
-
-    /// Constant force value used when force type is set to Drift.
-    double drift_value = 0.0;
-
-    /// Mathematical function $f(x)$ used when force varies by position.
-    std::function<double(double)> force_function;
-
-    /// List of force values at each grid point.
-    std::vector<double> force_vector;
 
     /**
      * @brief Checks if all settings and parameters are valid before building.
