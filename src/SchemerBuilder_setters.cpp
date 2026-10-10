@@ -32,35 +32,35 @@ SchemerBuilder &SchemerBuilder::set_length(const double value) {
 
 SchemerBuilder &SchemerBuilder::set_drift(const double value) {
     // Warn the user if a custom force function or vector is being overridden
-    if (force_type != ForceTypeEnum::Drift) {
+    if (inner_config.force_input.type != ForceInput::Type::Drift) {
         std::cerr << "[WARNING]: force was previously set. Drift will be used instead\n";
     }
-    drift_value = value;
-    force_type = ForceTypeEnum::Drift;
-    force_function = nullptr;
-    force_vector.clear();
+    inner_config.force_input.drift_value = value;
+    inner_config.force_input.type = ForceInput::Type::Drift;
+    inner_config.force_input.force_function = nullptr;
+    inner_config.force_input.force_vector.clear();
     return *this;
 }
 
 SchemerBuilder &SchemerBuilder::set_force(std::vector<double> value) {
     // Warn if replacing an existing drift setting
-    if (force_type == ForceTypeEnum::Drift && drift_value != 0.0) {
+    if (inner_config.force_input.type == ForceInput::Type::Drift && inner_config.force_input.drift_value != 0.0) {
         std::cerr << "[WARNING]: drift was previously set. Force vector will be used instead\n";
     }
-    force_vector = std::move(value);
-    force_type = ForceTypeEnum::Vector;
-    force_function = nullptr;
+    inner_config.force_input.force_vector = std::move(value);
+    inner_config.force_input.type = ForceInput::Type::Vector;
+    inner_config.force_input.force_function = nullptr;
     return *this;
 }
 
 SchemerBuilder &SchemerBuilder::set_force(std::function<double(double)> value) {
     // Warn if replacing an existing drift setting
-    if (force_type == ForceTypeEnum::Drift && drift_value != 0.0) {
+    if (inner_config.force_input.type == ForceInput::Type::Drift && inner_config.force_input.drift_value != 0.0) {
         std::cerr << "[WARNING]: drift was previously set. Force function will be used instead\n";
     }
-    force_function = std::move(value);
-    force_type = ForceTypeEnum::Function;
-    force_vector.clear();
+    inner_config.force_input.force_function = std::move(value);
+    inner_config.force_input.type = ForceInput::Type::Function;
+    inner_config.force_input.force_vector.clear();
     return *this;
 }
 
@@ -101,33 +101,33 @@ SchemerBuilder &SchemerBuilder::set_log_interval_percent(const double value) {
 // --- Initial Conditions ---
 
 SchemerBuilder &SchemerBuilder::set_initial_conditions(const Eigen::VectorXd &value) {
-    initial_vector = value;
-    initial_values_type = InitialValuesEnum::Vector;
+    inner_config.values_input.vector = value;
+    inner_config.values_input.type = ValuesInput::Type::Vector;
     return *this;
 }
 
 SchemerBuilder &SchemerBuilder::set_initial_conditions(const std::vector<double> &value) {
     // Map standard vector data directly into the Eigen vector format
-    initial_vector = Eigen::VectorXd::Map(value.data(), static_cast<Eigen::Index>(value.size()));
-    initial_values_type = InitialValuesEnum::Vector;
+    inner_config.values_input.vector = Eigen::VectorXd::Map(value.data(), static_cast<Eigen::Index>(value.size()));
+    inner_config.values_input.type = ValuesInput::Type::Vector;
     return *this;
 }
 
 // --- Zero Placement Options ---
 
 SchemerBuilder &SchemerBuilder::set_zero_index(const long long int value) {
-    zero_index = value;
-    zero_index_type = ZeroIndexEnum::Index;
+    inner_config.zero_input.index = value;
+    inner_config.zero_input.type = ZeroInput::Type::Index;
     return *this;
 }
 
 SchemerBuilder &SchemerBuilder::set_zero_distance(const double value) {
-    zero_distance = value;
-    zero_index_type = ZeroIndexEnum::Distance;
+    inner_config.zero_input.distance = value;
+    inner_config.zero_input.type = ZeroInput::Type::Distance;
     return *this;
 }
 
 SchemerBuilder &SchemerBuilder::set_zero_middle() {
-    zero_index_type = ZeroIndexEnum::Middle;
+    inner_config.zero_input.type = ZeroInput::Type::Middle;
     return *this;
 }

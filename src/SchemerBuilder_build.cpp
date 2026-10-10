@@ -33,31 +33,31 @@ void SchemerBuilder::validate_parameters() const {
 }
 
 Eigen::Index SchemerBuilder::compute_starting_index() const {
-    switch (zero_index_type) {
-        case ZeroIndexEnum::Middle:
+    switch (inner_config.zero_input.type) {
+        case ZeroInput::Type::Middle:
             // Place zero reference point at the exact center of the grid
             return inner_config.num_intervals / 2;
 
-        case ZeroIndexEnum::Index:
+        case ZeroInput::Type::Index:
             // Use the explicit user-provided grid index
-            if (zero_index < 0 || zero_index > inner_config.num_intervals)
+            if (inner_config.zero_input.index < 0 || inner_config.zero_input.index > inner_config.num_intervals)
                 throw std::invalid_argument("initial_index must be in [0, I]");
-            return zero_index;
+            return inner_config.zero_input.index;
 
-        case ZeroIndexEnum::Distance: {
+        case ZeroInput::Type::Distance: {
             // Convert physical distance offset to nearest discrete grid index
-            if (zero_distance < 0.0 || zero_distance > inner_config.length)
+            if (inner_config.zero_input.distance < 0.0 || inner_config.zero_input.distance > inner_config.length)
                 throw std::invalid_argument("initial_distance must be in [0, length]");
 
             const auto grid_points_double = static_cast<double>(inner_config.num_intervals);
-            const double ideal_index = grid_points_double * zero_distance / inner_config.length;
+            const double ideal_index = grid_points_double * inner_config.zero_input.distance / inner_config.length;
             const auto real_index = static_cast<Eigen::Index>(std::round(ideal_index));
             const double actual_distance = static_cast<double>(real_index) * inner_config.length / grid_points_double;
-            const double distance_difference = zero_distance - actual_distance;
+            const double distance_difference = inner_config.zero_input.distance - actual_distance;
 
             // Warn if distance doesn't align perfectly with grid points
             if (std::abs(distance_difference) > 1e-9) {
-                std::cerr << "[WARNING] Target distance " << zero_distance
+                std::cerr << "[WARNING] Target distance " << inner_config.zero_input.distance
                         << " snapped to grid index " << real_index
                         << " (discrepancy: " << distance_difference << ")\n";
             }
@@ -69,7 +69,7 @@ Eigen::Index SchemerBuilder::compute_starting_index() const {
         }
 
         default:
-            throw std::logic_error("Unhandled ZeroIndexEnum enum value");
+            throw std::logic_error("Unhandled ZeroInput::Type enum value");
     }
 }
 
@@ -77,51 +77,51 @@ Eigen::VectorXd SchemerBuilder::compute_initial_state(const Eigen::Index startin
     const Eigen::Index grid_size = inner_config.get_size();
     Eigen::VectorXd starting_values = Eigen::VectorXd::Zero(grid_size);
 
-    switch (initial_values_type) {
-        case InitialValuesEnum::Dirac:
+    switch (inner_config.values_input.type) {
+        case ValuesInput::Type::Dirac:
             // Scale Dirac delta point mass based on spatial resolution (1 / dx)
             starting_values(starting_index) = static_cast<double>(inner_config.num_intervals) / inner_config.length;
             break;
 
-        case InitialValuesEnum::Vector:
+        case ValuesInput::Type::Vector:
             // Copy custom user-defined initial vector directly
-            if (initial_vector.size() != grid_size)
+            if (inner_config.values_input.vector.size() != grid_size)
                 throw std::invalid_argument("initial values must have size I+1");
-            starting_values = initial_vector;
+            starting_values = inner_config.values_input.vector;
             break;
 
         default:
-            throw std::logic_error("Unhandled InitialValuesEnum enum value");
+            throw std::logic_error("Unhandled ValuesInput::Type enum value");
     }
 
     return starting_values;
 }
 
 std::variant<double, std::vector<double>> SchemerBuilder::compute_force_variant(const Eigen::Index starting_index) const {
-    switch (force_type) {
-        case ForceTypeEnum::Drift:
-            return drift_value;
-        case ForceTypeEnum::Function: {
-            if (!force_function)
+    switch (inner_config.force_input.type) {
+        case ForceInput::Type::Drift:
+            return inner_config.force_input.drift_value;
+        case ForceInput::Type::Function: {
+            if (!inner_config.force_input.force_function)
                 throw std::invalid_argument("force function not set");
 
             const auto coords = inner_config.get_coordinates(starting_index);
             std::vector<double> force_values(coords.size());
 
             for (size_t i = 0; i < coords.size(); ++i) {
-                force_values[i] = force_function(coords[i]);
+                force_values[i] = inner_config.force_input.force_function(coords[i]);
             }
             return force_values;
         }
 
-        case ForceTypeEnum::Vector:
+        case ForceInput::Type::Vector:
             // Use pre-computed spatial force vector
-            if (force_vector.size() != inner_config.get_size())
+            if (inner_config.force_input.force_vector.size() != inner_config.get_size())
                 throw std::invalid_argument("force vector must have size I+1");
-            return force_vector;
+            return inner_config.force_input.force_vector;
 
         default:
-            throw std::logic_error("Unhandled ForceTypeEnum enum value");
+            throw std::logic_error("Unhandled ForceInput::Type enum value");
     }
 }
 
