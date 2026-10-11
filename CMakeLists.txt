@@ -21,3 +21,5 @@ add_executable(Engineer
 )
 
 target_link_libraries(Engineer PRIVATE Schemer::Schemer)
+
+target_compile_definitions(Engineer PUBLIC -DPROJECT_ROOT="${CMAKE_SOURCE_DIR}")
