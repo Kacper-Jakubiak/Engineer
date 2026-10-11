@@ -2,8 +2,8 @@
 #include <format>
 #include <fstream>
 
-#include "include/Schemer.h"
 #include "capala/hist.h"
+#include "Schemer.h"
 using namespace std;
 
 double (*force_from_int(const int n))(const double x) {
